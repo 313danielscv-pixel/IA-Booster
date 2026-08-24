@@ -1,0 +1,6 @@
+indicator,value,scope,source_url,source_date,notes
+Buques,5,Despliegue Atlantico 26,https://emad.defensa.gob.es/prensa/noticias/2026/06/Listado/260602-ni-inicio-despliegue-atlantico.html,2026-06-02,"Dato comunicado para este despliegue concreto; no representa el inventario naval nacional."
+Personal,~2500,Despliegue Atlantico 26,https://emad.defensa.gob.es/prensa/noticias/2026/06/Listado/260602-ni-inicio-despliegue-atlantico.html,2026-06-02,"Dato aproximado comunicado para este despliegue concreto; no representa personal total disponible."
+Vehiculos,75,Despliegue Atlantico 26,https://emad.defensa.gob.es/prensa/noticias/2026/06/Listado/260602-ni-inicio-despliegue-atlantico.html,2026-06-02,"No representa el inventario total del Ejercito."
+Aeronaves,10,Despliegue Atlantico 26,https://emad.defensa.gob.es/prensa/noticias/2026/06/Listado/260602-ni-inicio-despliegue-atlantico.html,2026-06-02,"No representa el inventario total del Ejercito del Aire y del Espacio."
+Embarcaciones anfibias,12,Despliegue Atlantico 26,https://emad.defensa.gob.es/prensa/noticias/2026/06/Listado/260602-ni-inicio-despliegue-atlantico.html,2026-06-02,"No representa el inventario total de la Armada."

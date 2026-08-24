@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Ilustracion de personal militar en servicio">
+  <rect width="320" height="180" rx="18" fill="#eaf1f7"/>
+  <path d="M36 148h248" stroke="#52718b" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="160" cy="62" r="26" fill="#d9a67d"/>
+  <path d="M125 58q35-40 70 0v12h-70z" fill="#395b47"/>
+  <path d="M107 145v-38q0-27 53-27t53 27v38z" fill="#395b47"/>
+  <path d="M136 87h48l-8 58h-32z" fill="#56745d"/>
+  <path d="M104 115h112" stroke="#263f32" stroke-width="8"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" role="img" aria-label="Ilustracion de reservistas">
+  <rect width="320" height="180" rx="18" fill="#f4eee6"/>
+  <path d="M36 148h248" stroke="#8b7252" stroke-width="6" stroke-linecap="round"/>
+  <path d="M94 120q0-53 66-53t66 53v13H94z" fill="#5a6f4f"/>
+  <path d="M106 116q7-36 54-36t54 36" fill="none" stroke="#344531" stroke-width="7"/>
+  <path d="M137 67v-12q23-16 46 0v12" fill="none" stroke="#344531" stroke-width="7"/>
+  <path d="M126 141h68" stroke="#d9a67d" stroke-width="15" stroke-linecap="round"/>
+</svg>

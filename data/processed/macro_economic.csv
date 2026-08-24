@@ -1,0 +1,463 @@
+country,year,gdp_current_usd,population,source_id,source_dataset
+France,1960,61959085885.3427,47412964,D04,World Development Indicators
+France,1961,67158050215.0488,47905982,D04,World Development Indicators
+France,1962,75196980365.0325,48389516,D04,World Development Indicators
+France,1963,84227606649.8725,48877567,D04,World Development Indicators
+France,1964,93424179943.3453,49401492,D04,World Development Indicators
+France,1965,100927668584.29,49877725,D04,World Development Indicators
+France,1966,109306730313.216,50311637,D04,World Development Indicators
+France,1967,118088635380.954,50722791,D04,World Development Indicators
+France,1968,128710572572.436,51112980,D04,World Development Indicators
+France,1969,140660914840.59,51536014,D04,World Development Indicators
+France,1970,147312861698.358,52007169,D04,World Development Indicators
+France,1971,164694210962.472,52499553,D04,World Development Indicators
+France,1972,201738881664.499,52962356,D04,World Development Indicators
+France,1973,261970536240.424,53392161,D04,World Development Indicators
+France,1974,282739225313.693,53746571,D04,World Development Indicators
+France,1975,357324307786.446,54002853,D04,World Development Indicators
+France,1976,368363152144.223,54232383,D04,World Development Indicators
+France,1977,406401711687.617,54486467,D04,World Development Indicators
+France,1978,501724418604.651,54734030,D04,World Development Indicators
+France,1979,608218624730.188,54979851,D04,World Development Indicators
+France,1980,694529183483.39,55274184,D04,World Development Indicators
+France,1981,609184791792.396,55603353,D04,World Development Indicators
+France,1982,578152310609.841,55806789,D04,World Development Indicators
+France,1983,553356312935.709,56108330,D04,World Development Indicators
+France,1984,525033325827.516,56383085,D04,World Development Indicators
+France,1985,547220981165.134,56665619,D04,World Development Indicators
+France,1986,764946585850.933,56956002,D04,World Development Indicators
+France,1987,926320855614.973,57266167,D04,World Development Indicators
+France,1988,1010827662151.75,57598186,D04,World Development Indicators
+France,1989,1016742237302.08,57943062,D04,World Development Indicators
+France,1990,1257649439826.53,58261012,D04,World Development Indicators
+France,1991,1258961748633.88,58554242,D04,World Development Indicators
+France,1992,1389663073110.28,58846584,D04,World Development Indicators
+France,1993,1314383368079.69,59103094,D04,World Development Indicators
+France,1994,1385822778827.98,59324863,D04,World Development Indicators
+France,1995,1595219345511.89,59541294,D04,World Development Indicators
+France,1996,1598889216566.23,59754504,D04,World Development Indicators
+France,1997,1449392222971.45,59968066,D04,World Development Indicators
+France,1998,1496906382032.47,60190684,D04,World Development Indicators
+France,1999,1486915879701.93,60501986,D04,World Development Indicators
+France,2000,1360959069477.49,60918661,D04,World Development Indicators
+France,2001,1370376677298.86,61364377,D04,World Development Indicators
+France,2002,1492427756382.43,61812142,D04,World Development Indicators
+France,2003,1835095983049.09,62249855,D04,World Development Indicators
+France,2004,2109792297237.03,62707588,D04,World Development Indicators
+France,2005,2192146403028.17,63180854,D04,World Development Indicators
+France,2006,2317861544690.82,63622342,D04,World Development Indicators
+France,2007,2655816911866.56,64016890,D04,World Development Indicators
+France,2008,2926802941585.86,64375116,D04,World Development Indicators
+France,2009,2700075882518.98,64706436,D04,World Development Indicators
+France,2010,2646230027988.34,65026211,D04,World Development Indicators
+France,2011,2870408553990.28,65340830,D04,World Development Indicators
+France,2012,2683007095787.23,65657659,D04,World Development Indicators
+France,2013,2816077607875.26,65997932,D04,World Development Indicators
+France,2014,2861236112552.42,66312067,D04,World Development Indicators
+France,2015,2442483452642.5,66548272,D04,World Development Indicators
+France,2016,2470407619777.13,66724104,D04,World Development Indicators
+France,2017,2588868323334.71,66918020,D04,World Development Indicators
+France,2018,2781576320884.39,67158348,D04,World Development Indicators
+France,2019,2722793515171.76,67382061,D04,World Development Indicators
+France,2020,2647926055110.05,67601110,D04,World Development Indicators
+France,2021,2966433692008.09,67842811,D04,World Development Indicators
+France,2022,2794788137066.94,68184457,D04,World Development Indicators
+France,2023,3056250648138.29,68372286,D04,World Development Indicators
+France,2024,3160442622465.08,68551653,D04,World Development Indicators
+France,2025,3366315927447.33,68720337,D04,World Development Indicators
+Germany,1960,84619845881.2608,72814900,D04,World Development Indicators
+Germany,1961,96558204043.1028,73377632,D04,World Development Indicators
+Germany,1962,105895435234.343,74025784,D04,World Development Indicators
+Germany,1963,112232503744.1,74714353,D04,World Development Indicators
+Germany,1964,123330404665.086,75318337,D04,World Development Indicators
+Germany,1965,134774688191.161,75963695,D04,World Development Indicators
+Germany,1966,143304275683.979,76600311,D04,World Development Indicators
+Germany,1967,145100667772.69,76951336,D04,World Development Indicators
+Germany,1968,156527292653.157,77294314,D04,World Development Indicators
+Germany,1969,177733486326.06,77909682,D04,World Development Indicators
+Germany,1970,216629229947.096,78169289,D04,World Development Indicators
+Germany,1971,250900942396.699,78312842,D04,World Development Indicators
+Germany,1972,300899944795.436,78688452,D04,World Development Indicators
+Germany,1973,399833571167.215,78936666,D04,World Development Indicators
+Germany,1974,446934971657.471,78967433,D04,World Development Indicators
+Germany,1975,492434094920.105,78673554,D04,World Development Indicators
+Germany,1976,521658712132.981,78336950,D04,World Development Indicators
+Germany,1977,602698323085.993,78159814,D04,World Development Indicators
+Germany,1978,743182891918.208,78091820,D04,World Development Indicators
+Germany,1979,884574218333.155,78126350,D04,World Development Indicators
+Germany,1980,953772499462.019,78288576,D04,World Development Indicators
+Germany,1981,803404797057.551,78407907,D04,World Development Indicators
+Germany,1982,779421633755.138,78333366,D04,World Development Indicators
+Germany,1983,773507930294.906,78128282,D04,World Development Indicators
+Germany,1984,727767760978.627,77858685,D04,World Development Indicators
+Germany,1985,735218723093.277,77684873,D04,World Development Indicators
+Germany,1986,1050092624515.9,77720436,D04,World Development Indicators
+Germany,1987,1302932318824.81,77839920,D04,World Development Indicators
+Germany,1988,1406367016371.53,78144619,D04,World Development Indicators
+Germany,1989,1404092925205.45,78751283,D04,World Development Indicators
+Germany,1990,1778162195860.07,79433029,D04,World Development Indicators
+Germany,1991,1875792575132.59,80013896,D04,World Development Indicators
+Germany,1992,2141377582968.07,80624598,D04,World Development Indicators
+Germany,1993,2078954217437.6,81156363,D04,World Development Indicators
+Germany,1994,2215282632276.73,81438348,D04,World Development Indicators
+Germany,1995,2593053091306.13,81678051,D04,World Development Indicators
+Germany,1996,2506576553158.31,81914831,D04,World Development Indicators
+Germany,1997,2218790886532.82,82034771,D04,World Development Indicators
+Germany,1998,2247760364565.97,82047195,D04,World Development Indicators
+Germany,1999,2213873468586.88,82100243,D04,World Development Indicators
+Germany,2000,1966980701145.1,82211508,D04,World Development Indicators
+Germany,2001,1966381496641.73,82349925,D04,World Development Indicators
+Germany,2002,2102350798305.89,82488495,D04,World Development Indicators
+Germany,2003,2534715518349.01,82534176,D04,World Development Indicators
+Germany,2004,2852317768061.78,82516260,D04,World Development Indicators
+Germany,2005,2893393187361.87,82469422,D04,World Development Indicators
+Germany,2006,3046308753670.58,82376451,D04,World Development Indicators
+Germany,2007,3484056680854.91,82266372,D04,World Development Indicators
+Germany,2008,3808197720125.0,82110097,D04,World Development Indicators
+Germany,2009,3478545516683.59,81902307,D04,World Development Indicators
+Germany,2010,3467093769666.67,81776930,D04,World Development Indicators
+Germany,2011,3823575803793.78,80274983,D04,World Development Indicators
+Germany,2012,3596483233406.25,80425823,D04,World Development Indicators
+Germany,2013,3807023797050.99,80645605,D04,World Development Indicators
+Germany,2014,3964870735760.77,80982500,D04,World Development Indicators
+Germany,2015,3425099578746.09,81686611,D04,World Development Indicators
+Germany,2016,3536787895179.0,82348669,D04,World Development Indicators
+Germany,2017,3765351626105.89,82657002,D04,World Development Indicators
+Germany,2018,4055433215301.96,82905782,D04,World Development Indicators
+Germany,2019,3959894794039.21,83092962,D04,World Development Indicators
+Germany,2020,3941398957073.94,83160871,D04,World Development Indicators
+Germany,2021,4355251953410.78,83196078,D04,World Development Indicators
+Germany,2022,4201021706478.62,83177813,D04,World Development Indicators
+Germany,2023,4562207532490.28,83287273,D04,World Development Indicators
+Germany,2024,4685592577804.69,83516593,D04,World Development Indicators
+Germany,2025,5050922925047.05,83491249,D04,World Development Indicators
+Italy,1960,42012422612.3955,50199700,D04,World Development Indicators
+Italy,1961,46649487320.4225,50536350,D04,World Development Indicators
+Italy,1962,52413872628.0045,50879450,D04,World Development Indicators
+Italy,1963,60035924617.9277,51252000,D04,World Development Indicators
+Italy,1964,65720771779.4768,51675350,D04,World Development Indicators
+Italy,1965,70717012186.1774,52112350,D04,World Development Indicators
+Italy,1966,76622444787.3696,52519000,D04,World Development Indicators
+Italy,1967,84401995573.2456,52900500,D04,World Development Indicators
+Italy,1968,91485448147.84,53235750,D04,World Development Indicators
+Italy,1969,100996667239.335,53537950,D04,World Development Indicators
+Italy,1970,113656669764.56,53821850,D04,World Development Indicators
+Italy,1971,124959712858.926,54073490,D04,World Development Indicators
+Italy,1972,145594833997.344,54381345,D04,World Development Indicators
+Italy,1973,175896529392.229,54751406,D04,World Development Indicators
+Italy,1974,200024444775.231,55110868,D04,World Development Indicators
+Italy,1975,228220643534.994,55441001,D04,World Development Indicators
+Italy,1976,225235205861.828,55718260,D04,World Development Indicators
+Italy,1977,258190019749.835,55955411,D04,World Development Indicators
+Italy,1978,315784469541.41,56155143,D04,World Development Indicators
+Italy,1979,394584507107.9,56317749,D04,World Development Indicators
+Italy,1980,478356755595.749,56433883,D04,World Development Indicators
+Italy,1981,431695533980.583,56501675,D04,World Development Indicators
+Italy,1982,428257421617.752,56543548,D04,World Development Indicators
+Italy,1983,444063496940.337,56564074,D04,World Development Indicators
+Italy,1984,438896930791.272,56576718,D04,World Development Indicators
+Italy,1985,453259761687.456,56593071,D04,World Development Indicators
+Italy,1986,641862313287.44,56596155,D04,World Development Indicators
+Italy,1987,807570134448.76,56601931,D04,World Development Indicators
+Italy,1988,893663934840.821,56629288,D04,World Development Indicators
+Italy,1989,930801709003.669,56671781,D04,World Development Indicators
+Italy,1990,1183945130898.51,56719240,D04,World Development Indicators
+Italy,1991,1249092439519.28,56758521,D04,World Development Indicators
+Italy,1992,1323204350353.5,56797087,D04,World Development Indicators
+Italy,1993,1067412587670.73,56831821,D04,World Development Indicators
+Italy,1994,1101750159702.21,56843400,D04,World Development Indicators
+Italy,1995,1177369428265.78,56844303,D04,World Development Indicators
+Italy,1996,1314776508972.27,56860281,D04,World Development Indicators
+Italy,1997,1244988176443.84,56890372,D04,World Development Indicators
+Italy,1998,1272729786996.77,56906744,D04,World Development Indicators
+Italy,1999,1255004736463.98,56916317,D04,World Development Indicators
+Italy,2000,1149661363439.38,56942108,D04,World Development Indicators
+Italy,2001,1172041488805.87,56976981,D04,World Development Indicators
+Italy,2002,1281746271196.04,57089824,D04,World Development Indicators
+Italy,2003,1582930016538.82,57399184,D04,World Development Indicators
+Italy,2004,1812808753294.75,57828179,D04,World Development Indicators
+Italy,2005,1864982261286.85,58166682,D04,World Development Indicators
+Italy,2006,1958563654385.64,58399861,D04,World Development Indicators
+Italy,2007,2222524108127.65,58756247,D04,World Development Indicators
+Italy,2008,2417508414187.19,59211181,D04,World Development Indicators
+Italy,2009,2209484319012.65,59555454,D04,World Development Indicators
+Italy,2010,2144936254535.0,59819407,D04,World Development Indicators
+Italy,2011,2306974020278.21,60026841,D04,World Development Indicators
+Italy,2012,2097929495121.68,60191247,D04,World Development Indicators
+Italy,2013,2153225581941.46,60311613,D04,World Development Indicators
+Italy,2014,2173255507985.84,60320707,D04,World Development Indicators
+Italy,2015,1845428048839.1,60229605,D04,World Development Indicators
+Italy,2016,1887111188176.93,60115223,D04,World Development Indicators
+Italy,2017,1970720904584.71,60002252,D04,World Development Indicators
+Italy,2018,2099435266458.67,59877221,D04,World Development Indicators
+Italy,2019,2019606796583.53,59729081,D04,World Development Indicators
+Italy,2020,1907481094079.23,59438851,D04,World Development Indicators
+Italy,2021,2179207773596.09,59133173,D04,World Development Indicators
+Italy,2022,2104067630319.46,59013667,D04,World Development Indicators
+Italy,2023,2316882296366.32,58984216,D04,World Development Indicators
+Italy,2024,2383435562458.12,58952704,D04,World Development Indicators
+Italy,2025,2551556954100.35,58915656,D04,World Development Indicators
+Morocco,1960,2037154741.93211,11624933,D04,World Development Indicators
+Morocco,1961,2025693539.55842,11931085,D04,World Development Indicators
+Morocco,1962,2379611124.61442,12253092,D04,World Development Indicators
+Morocco,1963,2657252578.30763,12577502,D04,World Development Indicators
+Morocco,1964,2798345298.57781,12898886,D04,World Development Indicators
+Morocco,1965,2948331090.46752,13239171,D04,World Development Indicators
+Morocco,1966,2876401297.10759,13597065,D04,World Development Indicators
+Morocco,1967,3046345314.38655,13968175,D04,World Development Indicators
+Morocco,1968,3271422332.61996,14347899,D04,World Development Indicators
+Morocco,1969,3651622668.95103,14734255,D04,World Development Indicators
+Morocco,1970,3956336244.11865,15129449,D04,World Development Indicators
+Morocco,1971,4356669034.34266,15527225,D04,World Development Indicators
+Morocco,1972,5074117544.77482,15924692,D04,World Development Indicators
+Morocco,1973,6242145880.08876,16326269,D04,World Development Indicators
+Morocco,1974,7675466449.35531,16733842,D04,World Development Indicators
+Morocco,1975,8984853005.08058,17150786,D04,World Development Indicators
+Morocco,1976,9584297284.28316,17574182,D04,World Development Indicators
+Morocco,1977,11049783871.8144,18014756,D04,World Development Indicators
+Morocco,1978,13236946233.5759,18477385,D04,World Development Indicators
+Morocco,1979,15911994817.3107,18955589,D04,World Development Indicators
+Morocco,1980,21728516153.0907,19459943,D04,World Development Indicators
+Morocco,1981,17788185478.944,19985401,D04,World Development Indicators
+Morocco,1982,17692276734.171,20520318,D04,World Development Indicators
+Morocco,1983,16251408127.5735,21060696,D04,World Development Indicators
+Morocco,1984,14824667954.3674,21593778,D04,World Development Indicators
+Morocco,1985,14991283215.7408,22113953,D04,World Development Indicators
+Morocco,1986,19462085540.2231,22600803,D04,World Development Indicators
+Morocco,1987,21765195948.189,23054392,D04,World Development Indicators
+Morocco,1988,25705296183.5037,23500524,D04,World Development Indicators
+Morocco,1989,26314313191.1826,23939414,D04,World Development Indicators
+Morocco,1990,30179954774.9899,24375551,D04,World Development Indicators
+Morocco,1991,32285573573.9185,24799014,D04,World Development Indicators
+Morocco,1992,33711069430.78,25212468,D04,World Development Indicators
+Morocco,1993,31655473663.8348,25614586,D04,World Development Indicators
+Morocco,1994,35604137422.5796,26000822,D04,World Development Indicators
+Morocco,1995,39030285468.3841,26399429,D04,World Development Indicators
+Morocco,1996,43161571527.6353,26808107,D04,World Development Indicators
+Morocco,1997,39147844526.0838,27213337,D04,World Development Indicators
+Morocco,1998,46497608724.9865,27621648,D04,World Development Indicators
+Morocco,1999,46266428648.1433,28027179,D04,World Development Indicators
+Morocco,2000,43017455401.8445,28423435,D04,World Development Indicators
+Morocco,2001,43831480207.6444,28814643,D04,World Development Indicators
+Morocco,2002,47077192187.6418,29198142,D04,World Development Indicators
+Morocco,2003,58029363354.2757,29571415,D04,World Development Indicators
+Morocco,2004,66114145451.0067,29953018,D04,World Development Indicators
+Morocco,2005,68852658068.6673,30358144,D04,World Development Indicators
+Morocco,2006,75883823300.8545,30771178,D04,World Development Indicators
+Morocco,2007,86947913286.728,31186468,D04,World Development Indicators
+Morocco,2008,101822906949.063,31606767,D04,World Development Indicators
+Morocco,2009,101154952240.881,32030778,D04,World Development Indicators
+Morocco,2010,100865329473.44,32467016,D04,World Development Indicators
+Morocco,2011,110080631332.375,32912588,D04,World Development Indicators
+Morocco,2012,106937392311.129,33355241,D04,World Development Indicators
+Morocco,2013,115739287305.08,33787571,D04,World Development Indicators
+Morocco,2014,119130841411.664,34204780,D04,World Development Indicators
+Morocco,2015,110413823841.592,34607588,D04,World Development Indicators
+Morocco,2016,111572947004.917,35023457,D04,World Development Indicators
+Morocco,2017,118540573367.844,35446392,D04,World Development Indicators
+Morocco,2018,127341147581.818,35839760,D04,World Development Indicators
+Morocco,2019,128920266409.458,36210898,D04,World Development Indicators
+Morocco,2020,121353645057.144,36584208,D04,World Development Indicators
+Morocco,2021,142022058447.231,36954442,D04,World Development Indicators
+Morocco,2022,131245312804.483,37329064,D04,World Development Indicators
+Morocco,2023,146036093666.762,37712505,D04,World Development Indicators
+Morocco,2024,160610994054.734,38081173,D04,World Development Indicators
+Morocco,2025,182374250612.28,38430770,D04,World Development Indicators
+Spain,1960,12424514013.7604,30455000,D04,World Development Indicators
+Spain,1961,14238126759.7335,30739250,D04,World Development Indicators
+Spain,1962,16609632790.5843,31023366,D04,World Development Indicators
+Spain,1963,19631714759.6491,31296651,D04,World Development Indicators
+Spain,1964,21966876027.2517,31609195,D04,World Development Indicators
+Spain,1965,25479619606.5284,31954292,D04,World Development Indicators
+Spain,1966,29559436182.9186,32283194,D04,World Development Indicators
+Spain,1967,32570905397.2885,32682947,D04,World Development Indicators
+Spain,1968,32394326463.759,33113134,D04,World Development Indicators
+Spain,1969,37090689287.8552,33441054,D04,World Development Indicators
+Spain,1970,40963715236.5106,33814531,D04,World Development Indicators
+Spain,1971,46586119760.479,34224490,D04,World Development Indicators
+Spain,1972,59090176028.993,34604469,D04,World Development Indicators
+Spain,1973,78583355225.5854,34988947,D04,World Development Indicators
+Spain,1974,97204522642.0536,35373335,D04,World Development Indicators
+Spain,1975,114695060869.565,35757900,D04,World Development Indicators
+Spain,1976,118422534195.474,36137812,D04,World Development Indicators
+Spain,1977,132354665936.473,36511638,D04,World Development Indicators
+Spain,1978,160484969618.056,36864898,D04,World Development Indicators
+Spain,1979,214448666336.143,37191330,D04,World Development Indicators
+Spain,1980,232600556973.776,37491165,D04,World Development Indicators
+Spain,1981,202663023968.283,37758631,D04,World Development Indicators
+Spain,1982,195856752991.065,37986012,D04,World Development Indicators
+Spain,1983,170829074245.94,38171525,D04,World Development Indicators
+Spain,1984,171979977230.387,38330364,D04,World Development Indicators
+Spain,1985,180664322896.282,38469512,D04,World Development Indicators
+Spain,1986,251141555185.933,38584624,D04,World Development Indicators
+Spain,1987,318520253335.13,38684815,D04,World Development Indicators
+Spain,1988,375891716897.586,38766939,D04,World Development Indicators
+Spain,1989,414460794096.978,38827764,D04,World Development Indicators
+Spain,1990,536175326477.31,38867322,D04,World Development Indicators
+Spain,1991,576753902321.857,38966376,D04,World Development Indicators
+Spain,1992,630465353486.104,39157685,D04,World Development Indicators
+Spain,1993,524700572623.872,39361262,D04,World Development Indicators
+Spain,1994,530183651720.283,39549108,D04,World Development Indicators
+Spain,1995,614170002668.802,39724050,D04,World Development Indicators
+Spain,1996,642251412058.321,39889852,D04,World Development Indicators
+Spain,1997,589739772727.273,40057389,D04,World Development Indicators
+Spain,1998,618731484575.12,40223509,D04,World Development Indicators
+Spain,1999,634394904386.874,40386875,D04,World Development Indicators
+Spain,2000,598102854756.08,40567864,D04,World Development Indicators
+Spain,2001,627798682378.741,40850412,D04,World Development Indicators
+Spain,2002,708938227243.923,41431558,D04,World Development Indicators
+Spain,2003,907963217057.645,42187645,D04,World Development Indicators
+Spain,2004,1069829382514.67,42921895,D04,World Development Indicators
+Spain,2005,1154667551775.88,43653155,D04,World Development Indicators
+Spain,2006,1261846683275.29,44397319,D04,World Development Indicators
+Spain,2007,1476746276854.51,45226803,D04,World Development Indicators
+Spain,2008,1636115447612.5,45954106,D04,World Development Indicators
+Spain,2009,1496587590847.66,46362946,D04,World Development Indicators
+Spain,2010,1427989078916.67,46576897,D04,World Development Indicators
+Spain,2011,1487568659241.25,46742697,D04,World Development Indicators
+Spain,2012,1330994811670.31,46773055,D04,World Development Indicators
+Spain,2013,1362186923157.65,46604197,D04,World Development Indicators
+Spain,2014,1380244561361.96,46460733,D04,World Development Indicators
+Spain,2015,1206164777553.12,46422303,D04,World Development Indicators
+Spain,2016,1243015667917.12,46458139,D04,World Development Indicators
+Spain,2017,1321754088818.83,46571232,D04,World Development Indicators
+Spain,2018,1431642809327.06,46782011,D04,World Development Indicators
+Spain,2019,1403496387686.27,47118501,D04,World Development Indicators
+Spain,2020,1289783836971.21,47359424,D04,World Development Indicators
+Spain,2021,1461244901852.69,47443821,D04,World Development Indicators
+Spain,2022,1448850658406.62,47786102,D04,World Development Indicators
+Spain,2023,1619481980719.64,48352528,D04,World Development Indicators
+Spain,2024,1725671652742.19,48848840,D04,World Development Indicators
+Spain,2025,1906453309985.88,49355143,D04,World Development Indicators
+United Kingdom,1960,73233967692.1028,52400000,D04,World Development Indicators
+United Kingdom,1961,77741965703.3544,52800000,D04,World Development Indicators
+United Kingdom,1962,81247564156.8246,53250000,D04,World Development Indicators
+United Kingdom,1963,86561961812.3249,53650000,D04,World Development Indicators
+United Kingdom,1964,94407558351.1616,54000000,D04,World Development Indicators
+United Kingdom,1965,101824755078.991,54348050,D04,World Development Indicators
+United Kingdom,1966,108572752102.045,54648500,D04,World Development Indicators
+United Kingdom,1967,113116888210.787,54943600,D04,World Development Indicators
+United Kingdom,1968,107759910067.889,55211700,D04,World Development Indicators
+United Kingdom,1969,116464702803.218,55441750,D04,World Development Indicators
+United Kingdom,1970,130671946244.3,55663250,D04,World Development Indicators
+United Kingdom,1971,148113896325.14,55896223,D04,World Development Indicators
+United Kingdom,1972,169965034965.035,56086065,D04,World Development Indicators
+United Kingdom,1973,192537971582.558,56194527,D04,World Development Indicators
+United Kingdom,1974,206131369798.971,56229974,D04,World Development Indicators
+United Kingdom,1975,241756637168.142,56225800,D04,World Development Indicators
+United Kingdom,1976,232614555256.065,56211968,D04,World Development Indicators
+United Kingdom,1977,263066457352.172,56193492,D04,World Development Indicators
+United Kingdom,1978,335883029721.956,56196504,D04,World Development Indicators
+United Kingdom,1979,438994070309.191,56246951,D04,World Development Indicators
+United Kingdom,1980,564947710899.373,56314216,D04,World Development Indicators
+United Kingdom,1981,540765675241.158,56333829,D04,World Development Indicators
+United Kingdom,1982,515048916841.37,56313641,D04,World Development Indicators
+United Kingdom,1983,489618008185.539,56332848,D04,World Development Indicators
+United Kingdom,1984,461487097632.349,56422072,D04,World Development Indicators
+United Kingdom,1985,489285164271.047,56550268,D04,World Development Indicators
+United Kingdom,1986,601452653180.885,56681396,D04,World Development Indicators
+United Kingdom,1987,745162608269.325,56802050,D04,World Development Indicators
+United Kingdom,1988,910122732123.799,56928327,D04,World Development Indicators
+United Kingdom,1989,926884816753.927,57076711,D04,World Development Indicators
+United Kingdom,1990,1093169389204.55,57247586,D04,World Development Indicators
+United Kingdom,1991,1142797178130.51,57424897,D04,World Development Indicators
+United Kingdom,1992,1179659529659.53,57580402,D04,World Development Indicators
+United Kingdom,1993,1061388722255.55,57718614,D04,World Development Indicators
+United Kingdom,1994,1140489745944.29,57865745,D04,World Development Indicators
+United Kingdom,1995,1349094208616.06,58019030,D04,World Development Indicators
+United Kingdom,1996,1425287051482.06,58166950,D04,World Development Indicators
+United Kingdom,1997,1569317288801.57,58316954,D04,World Development Indicators
+United Kingdom,1998,1660821464060.95,58487141,D04,World Development Indicators
+United Kingdom,1999,1693458987218.9,58682466,D04,World Development Indicators
+United Kingdom,2000,1671597821152.97,58892514,D04,World Development Indicators
+United Kingdom,2001,1656171009068.66,59119673,D04,World Development Indicators
+United Kingdom,2002,1790536570743.41,59370479,D04,World Development Indicators
+United Kingdom,2003,2061227755102.04,59647577,D04,World Development Indicators
+United Kingdom,2004,2429774807762.72,59987905,D04,World Development Indicators
+United Kingdom,2005,2551361818181.82,60401206,D04,World Development Indicators
+United Kingdom,2006,2719558417663.29,60846820,D04,World Development Indicators
+United Kingdom,2007,3104699879951.98,61322463,D04,World Development Indicators
+United Kingdom,2008,2945251838235.29,61806995,D04,World Development Indicators
+United Kingdom,2009,2429358155475.93,62276270,D04,World Development Indicators
+United Kingdom,2010,2496740681057.14,62766365,D04,World Development Indicators
+United Kingdom,2011,2675590034128.66,63258810,D04,World Development Indicators
+United Kingdom,2012,2719715961539.83,63711000,D04,World Development Indicators
+United Kingdom,2013,2796908333283.39,64138000,D04,World Development Indicators
+United Kingdom,2014,3085362169410.29,64619000,D04,World Development Indicators
+United Kingdom,2015,2945579890258.46,65087000,D04,World Development Indicators
+United Kingdom,2016,2706807606538.73,65606000,D04,World Development Indicators
+United Kingdom,2017,2699118387873.1,65964000,D04,World Development Indicators
+United Kingdom,2018,2897028009916.05,66287000,D04,World Development Indicators
+United Kingdom,2019,2875710080015.3,66628000,D04,World Development Indicators
+United Kingdom,2020,2724001478304.59,66740000,D04,World Development Indicators
+United Kingdom,2021,3194559188925.93,66978000,D04,World Development Indicators
+United Kingdom,2022,3181244350465.41,67636000,D04,World Development Indicators
+United Kingdom,2023,3420796653789.08,68526000,D04,World Development Indicators
+United Kingdom,2024,3695539513534.15,69281000,D04,World Development Indicators
+United Kingdom,2025,4002587541846.01,69487000,D04,World Development Indicators
+United States,1960,541988586206.897,180671000,D04,World Development Indicators
+United States,1961,561940310344.828,183691000,D04,World Development Indicators
+United States,1962,603639413793.103,186538000,D04,World Development Indicators
+United States,1963,637058551724.138,189242000,D04,World Development Indicators
+United States,1964,684144620689.655,191889000,D04,World Development Indicators
+United States,1965,741904862068.965,194303000,D04,World Development Indicators
+United States,1966,813032758620.69,196560000,D04,World Development Indicators
+United States,1967,859620034482.759,198712000,D04,World Development Indicators
+United States,1968,940225000000.0,200706000,D04,World Development Indicators
+United States,1969,1017438172413.79,202677000,D04,World Development Indicators
+United States,1970,1073303000000.0,205052000,D04,World Development Indicators
+United States,1971,1164850000000.0,207661000,D04,World Development Indicators
+United States,1972,1279110000000.0,209896000,D04,World Development Indicators
+United States,1973,1425376000000.0,211909000,D04,World Development Indicators
+United States,1974,1545243000000.0,213854000,D04,World Development Indicators
+United States,1975,1684904000000.0,215973000,D04,World Development Indicators
+United States,1976,1873412000000.0,218035000,D04,World Development Indicators
+United States,1977,2081826000000.0,220239000,D04,World Development Indicators
+United States,1978,2351599000000.0,222585000,D04,World Development Indicators
+United States,1979,2627333000000.0,225055000,D04,World Development Indicators
+United States,1980,2857307000000.0,227225000,D04,World Development Indicators
+United States,1981,3207041000000.0,229466000,D04,World Development Indicators
+United States,1982,3343789000000.0,231664000,D04,World Development Indicators
+United States,1983,3634038000000.0,233792000,D04,World Development Indicators
+United States,1984,4037613000000.0,235825000,D04,World Development Indicators
+United States,1985,4338979000000.0,237924000,D04,World Development Indicators
+United States,1986,4579631000000.0,240133000,D04,World Development Indicators
+United States,1987,4855215000000.0,242289000,D04,World Development Indicators
+United States,1988,5236438000000.0,244499000,D04,World Development Indicators
+United States,1989,5641580000000.0,246819000,D04,World Development Indicators
+United States,1990,5963144000000.0,249623000,D04,World Development Indicators
+United States,1991,6158129000000.0,252981000,D04,World Development Indicators
+United States,1992,6520327000000.0,256514000,D04,World Development Indicators
+United States,1993,6858559000000.0,259919000,D04,World Development Indicators
+United States,1994,7287236000000.0,263126000,D04,World Development Indicators
+United States,1995,7639749000000.0,266278000,D04,World Development Indicators
+United States,1996,8073122000000.0,269394000,D04,World Development Indicators
+United States,1997,8577552000000.0,272657000,D04,World Development Indicators
+United States,1998,9062817000000.0,275854000,D04,World Development Indicators
+United States,1999,9631172000000.0,279040000,D04,World Development Indicators
+United States,2000,10250952000000.0,282162411,D04,World Development Indicators
+United States,2001,10581929000000.0,284968955,D04,World Development Indicators
+United States,2002,10929108000000.0,287625193,D04,World Development Indicators
+United States,2003,11456450000000.0,290107933,D04,World Development Indicators
+United States,2004,12217196000000.0,292805298,D04,World Development Indicators
+United States,2005,13039197000000.0,295516599,D04,World Development Indicators
+United States,2006,13815583000000.0,298379912,D04,World Development Indicators
+United States,2007,14474228000000.0,301231207,D04,World Development Indicators
+United States,2008,14769862000000.0,304093966,D04,World Development Indicators
+United States,2009,14478067000000.0,306771529,D04,World Development Indicators
+United States,2010,15048971000000.0,309378227,D04,World Development Indicators
+United States,2011,15599732000000.0,311839461,D04,World Development Indicators
+United States,2012,16253970000000.0,314339099,D04,World Development Indicators
+United States,2013,16880683000000.0,316726282,D04,World Development Indicators
+United States,2014,17608138000000.0,319257560,D04,World Development Indicators
+United States,2015,18295019000000.0,321815121,D04,World Development Indicators
+United States,2016,18804913000000.0,324353340,D04,World Development Indicators
+United States,2017,19612102000000.0,326608609,D04,World Development Indicators
+United States,2018,20656516000000.0,328529577,D04,World Development Indicators
+United States,2019,21539982000000.0,330226227,D04,World Development Indicators
+United States,2020,21375281000000.0,331578104,D04,World Development Indicators
+United States,2021,23725645000000.0,332100166,D04,World Development Indicators
+United States,2022,26054614000000.0,333996304,D04,World Development Indicators
+United States,2023,27811517000000.0,336755052,D04,World Development Indicators
+United States,2024,29298013000000.0,340003797,D04,World Development Indicators
+United States,2025,30769700000000.0,341784857,D04,World Development Indicators

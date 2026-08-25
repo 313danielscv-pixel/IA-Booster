@@ -80,6 +80,31 @@ Los archivos `public_defence_installations.csv`, `public_defence_leadership.csv`
 `public_defence_personnel.csv` alimentan el mapa y las tablas de contexto de la pestaña
 **Defensa de España**.
 
+### Contexto público de defensa — Marruecos
+
+La pestaña **Defensa de Marruecos** replica la misma estructura que **Defensa de España**
+(mandos, instalaciones, personal, buques y equipos), pero Marruecos no publica un portal
+institucional de defensa equivalente a `defensa.gob.es`. Por eso estos archivos citan fuentes
+enciclopédicas (Wikipedia, con referencia a *The Military Balance* del IISS, EDA, UNROCA y SIPRI
+Trade Registers) y prensa especializada (Defense News) en lugar de documentos institucionales
+marroquíes de primera mano:
+
+- `public_defence_leadership_morocco.csv`: mandos superiores de las FAR (Rey, Ministro Delegado
+  de la Administración de la Defensa Nacional, Inspector General de las FAR, Armada y Fuerzas
+  Reales Aéreas).
+- `public_defence_installations_morocco.csv`: bases navales y aéreas con municipio y región de
+  referencia. La base de Dajla se sitúa en el Sáhara Occidental, territorio no autónomo según
+  Naciones Unidas y en disputa.
+- `public_defence_personnel_morocco.csv`: estimaciones de personal por rama, todas trazadas a
+  *The Military Balance* (IISS) vía Wikipedia, no a una estadística oficial marroquí.
+- `representative_navy_vessels_morocco.csv`: clases principales de la Armada Real (FREMM,
+  Floréal, Sigma, Descubierta, Rais Bargach, Lazaga, BATRAL).
+- `public_defence_equipment_morocco.csv`: familias de equipo del Ejército de Tierra y las
+  Fuerzas Reales Aéreas, incluyendo una aprobación de venta DSCA (AH-64E Apache) que no equivale
+  a una entrega confirmada.
+
+Las fuentes D35-D41 en `data/external/sources.csv` documentan cada uno de estos archivos.
+
 - Las instalaciones se sitúan mediante un municipio de referencia y describen únicamente su
   misión institucional general. No incluyas coordenadas tácticas, posiciones, disponibilidad,
   rutas, inventario ni despliegues.
@@ -105,15 +130,10 @@ del 1 de enero al 15 de agosto de 2026 y exclusivamente llegadas por vía terres
 el mapa, el tamaño de cada marcador representa los registros de Ceuta y Melilla de ese
 periodo. No debe interpretarse como un conteo de intentos, interceptaciones o rutas.
 
-### `data/processed/cyber_incidents.csv`
-
-Columnas requeridas: `year`, `category`, `incidents`, `source_organization`.
-
-Solo combina series con la misma definición, universo y periodo de reporte.
-
 ### `data/processed/security_events_timeline.csv`
 
-Columnas requeridas: `event_date`, `event_title`, `topic`, `evidence_level`, `source_url`.
+Columnas requeridas: `event_date`, `event_title`, `topic`, `evidence_level`, `source_url` (además de
+`notes` para el límite de interpretación de cada fila).
 
 Valores admitidos para `evidence_level`:
 
@@ -125,6 +145,19 @@ Valores admitidos para `evidence_level`:
 - `Interpretación`
 
 No uses una atribución como un hecho confirmado.
+
+Este archivo alimenta varias pestañas mediante el filtro de `topic`:
+
+- `Pegasus`: casos CatalanGate (España) y Pegasus Project (acusación contra Marruecos), mostrados
+  con el desglose "Ciberseguridad: ataques dados y recibidos" en **Defensa de España** y
+  **Defensa de Marruecos**. La antigua pestaña independiente de Ciberseguridad se eliminó.
+- `Frontera`: crisis migratoria de Ceuta (mayo de 2021) y tragedia de la valla de Melilla
+  (junio de 2022), usados como caso documentado en **Escenarios de riesgo**. La antigua pestaña
+  "Marruecos / Ceuta / Melilla" se eliminó por ser redundante con el mapa ya mostrado en Overview.
+- `Alianza`: cronología de los Acuerdos de Abraham y el reconocimiento de EE. UU. sobre el Sáhara
+  Occidental, en la pestaña **Alianza — Acuerdos de Abraham** (antes "Israel / Marruecos").
+- `OTAN`: hitos de la Base Naval de Rota y la Cumbre de Madrid de 2022, en la pestaña
+  **España-OTAN** (antes "Rota / OTAN").
 
 ## Estado del proyecto
 

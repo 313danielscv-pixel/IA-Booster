@@ -130,10 +130,6 @@ def load_project_data(
             "border_irregular_arrivals.csv",
             {"period", "territory", "arrivals"},
         ),
-        "cyber": load_csv(
-            "cyber_incidents.csv",
-            {"year", "category", "incidents", "source_organization"},
-        ),
         "events": load_csv(
             "security_events_timeline.csv",
             {"event_date", "event_title", "topic", "evidence_level", "source_url"},
@@ -953,6 +949,452 @@ def render_defence(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
         hide_index=True,
     )
 
+    render_spain_cyber_breakdown(data)
+
+
+def render_pegasus_events_table(events: pd.DataFrame) -> None:
+    """Shared renderer for the Pegasus-related rows of the events timeline."""
+    st.dataframe(
+        events.sort_values("event_date").rename(
+            columns={
+                "event_date": "Fecha",
+                "event_title": "Hecho",
+                "topic": "Tema",
+                "evidence_level": "Nivel de evidencia",
+                "source_url": "Fuente",
+                "notes": "Nota",
+            }
+        ),
+        width="stretch",
+        hide_index=True,
+        column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+    )
+
+
+def render_spain_cyber_breakdown(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
+    """Show cyberattacks given and received involving Spain, integrated into its defence tab."""
+    st.divider()
+    st.subheader("Ciberseguridad: ataques dados y recibidos")
+    st.info(
+        "**Criterio de evidencia:** la atribución de un ciberataque a un Estado o actor "
+        "solo se muestra como hecho si existe evidencia pública concluyente o resolución competente. "
+        "Una atribución periodística o de un informe técnico no es una condena judicial."
+    )
+    events, error = data["events"]
+    pegasus = events[events["topic"].eq("Pegasus")] if not events.empty else pd.DataFrame()
+    if pegasus.empty:
+        empty_data_message(error, "Registro documental de Pegasus")
+        return
+
+    given_col, received_col = st.columns(2)
+    with given_col:
+        st.markdown("#### 🇪🇸 Ataques dados (España como origen señalado)")
+        st.markdown(
+            "El caso **CatalanGate** (informe de Citizen Lab, abril de 2022) identificó hasta 65 "
+            "personas del entorno independentista catalán con indicios de infección por Pegasus o "
+            "Candiru entre 2017 y 2020. El CNI admitió ante el Parlamento, en mayo de 2022, haber "
+            "espiado con autorización judicial a una parte de esos casos; su directora, Paz Esteban, "
+            "fue cesada poco después."
+        )
+    with received_col:
+        st.markdown("#### 🎯 Ataques recibidos (España como objetivo señalado)")
+        st.markdown(
+            "El Pegasus Project (Forbidden Stories, julio de 2021) incluyó números de dirigentes "
+            "internacionales en una lista de posible interés para clientes de NSO Group, y señaló a "
+            "Marruecos entre los presuntos clientes. Marruecos niega categóricamente haber usado "
+            "Pegasus contra España, Francia o cualquier otro país; no existe una condena judicial "
+            "que confirme esta atribución."
+        )
+    st.subheader("Cronología documental")
+    render_pegasus_events_table(pegasus)
+    st.caption(
+        "Distingue expresamente entre lo admitido oficialmente (CNI, mayo de 2022), lo señalado por "
+        "informes técnicos independientes (Citizen Lab) y lo meramente atribuido por prensa sin "
+        "confirmación judicial (el caso marroquí)."
+    )
+
+
+def render_morocco_defence(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
+    """Show Morocco's verified aggregate military-expenditure indicators."""
+    st.header("Defensa de Marruecos")
+    military, error = data["military"]
+    if military.empty:
+        empty_data_message(error, "D01")
+        return
+
+    morocco = military[military["country"].eq("Morocco")].copy()
+    if morocco.empty:
+        st.warning("No hay registros de Marruecos en el conjunto cargado.")
+        return
+
+    morocco["year"] = pd.to_numeric(morocco["year"], errors="coerce")
+    morocco = morocco.dropna(subset=["year"]).sort_values("year")
+    morocco = convert_usd_to_eur(
+        morocco,
+        [
+            "military_expenditure_constant_usd",
+            "military_expenditure_per_capita_usd",
+        ],
+    )
+    latest = morocco.iloc[-1]
+    expenditure, effort, per_capita = st.columns(3)
+    expenditure.metric(
+        "Gasto militar",
+        format_eur(latest["military_expenditure_constant_usd"]),
+    )
+    effort.metric(
+        "Gasto / PIB",
+        (
+            f"{latest['military_expenditure_pct_gdp']:.2f}%"
+            if pd.notna(latest["military_expenditure_pct_gdp"])
+            else "No disponible"
+        ),
+    )
+    per_capita.metric(
+        "Gasto per cápita",
+        (
+            f"EUR {latest['military_expenditure_per_capita_usd']:,.0f}"
+            if pd.notna(latest["military_expenditure_per_capita_usd"])
+            else "No disponible"
+        ),
+    )
+    st.caption(
+        f"Último año disponible para Marruecos: {int(latest['year'])}. "
+        "Los importes se muestran en EUR aproximados usando el tipo medio EUR/USD de 2024; "
+        "los CSV originales permanecen en USD."
+    )
+
+    expenditure_chart = px.line(
+        morocco,
+        x="year",
+        y="military_expenditure_constant_usd",
+        markers=True,
+        labels={
+            "year": "Año",
+            "military_expenditure_constant_usd": "Gasto militar (EUR constantes aprox.)",
+        },
+        title="Evolución del gasto militar de Marruecos (EUR constantes aprox.)",
+    )
+    st.plotly_chart(expenditure_chart, width="stretch")
+
+    effort_chart = px.line(
+        morocco,
+        x="year",
+        y="military_expenditure_pct_gdp",
+        markers=True,
+        labels={"year": "Año", "military_expenditure_pct_gdp": "Gasto militar (% del PIB)"},
+        title="Esfuerzo de defensa de Marruecos (% del PIB)",
+    )
+    st.plotly_chart(effort_chart, width="stretch")
+    st.warning(
+        "La serie SIPRI mide gasto militar agregado; por sí sola no representa la capacidad "
+        "militar completa ni debe equipararse directamente a presupuestos nacionales."
+    )
+
+    external_revision = external_data_revision()
+    render_morocco_public_defence_context(external_revision)
+    render_morocco_navy_vessels(external_revision)
+    render_morocco_equipment_catalog(external_revision)
+    render_morocco_cyber_breakdown(data)
+
+
+def render_morocco_leadership_context(external_revision: tuple[tuple[str, int], ...]) -> None:
+    """Show Morocco's senior defence leadership with dated encyclopaedic sources."""
+    leadership, leadership_error = load_external_catalog(
+        external_revision,
+        "public_defence_leadership_morocco.csv",
+        frozenset({"office", "officeholder", "rank", "status", "source_url", "source_date", "notes"}),
+    )
+    st.markdown("#### Mandos superiores confirmados en fuentes enciclopédicas")
+    if leadership.empty:
+        st.info(leadership_error or "No hay mandos documentados todavía.")
+        return
+    st.dataframe(
+        leadership.rename(
+            columns={
+                "office": "Cargo",
+                "officeholder": "Titular",
+                "rank": "Empleo",
+                "status": "Estado",
+                "source_url": "Fuente",
+                "source_date": "Fecha de fuente",
+                "notes": "Nota",
+            }
+        ),
+        column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+        width="stretch",
+        hide_index=True,
+    )
+    st.caption(
+        "Marruecos no publica un portal de defensa equivalente a defensa.gob.es: estas fuentes son "
+        "referencias enciclopédicas que citan The Military Balance (IISS) y deben verificarse de nuevo "
+        "antes de reutilizarse fuera de esta fecha de consulta."
+    )
+
+
+def render_morocco_personnel_context(external_revision: tuple[tuple[str, int], ...]) -> None:
+    """Show Morocco's personnel estimates, all traced to IISS Military Balance via a secondary source."""
+    personnel, personnel_error = load_external_catalog(
+        external_revision,
+        "public_defence_personnel_morocco.csv",
+        frozenset({"indicator", "value", "reference_date", "status", "source_url", "source_date", "notes"}),
+    )
+    st.markdown("#### Personal militar")
+    st.warning(
+        "Estas cifras proceden de The Military Balance (IISS) citado por una fuente enciclopédica, no de una "
+        "estadística oficial marroquí publicada. Deben sustituirse por una fuente primaria cuando esté disponible."
+    )
+    if personnel.empty:
+        st.info(personnel_error or "No hay datos de personal disponibles.")
+        return
+    st.dataframe(
+        personnel.rename(
+            columns={
+                "indicator": "Indicador",
+                "value": "Dato",
+                "reference_date": "Referencia",
+                "status": "Estado",
+                "source_url": "Fuente",
+                "source_date": "Fecha de fuente",
+                "notes": "Nota",
+            }
+        ),
+        column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+        width="stretch",
+        hide_index=True,
+    )
+
+
+def render_morocco_installations_map(external_revision: tuple[tuple[str, int], ...]) -> None:
+    """Render only public, non-operational context for Moroccan defence installations."""
+    installations, installations_error = load_external_catalog(
+        external_revision,
+        "public_defence_installations_morocco.csv",
+        frozenset(
+            {
+                "name",
+                "service",
+                "city",
+                "region",
+                "latitude",
+                "longitude",
+                "public_role",
+                "source_url",
+                "source_date",
+                "notes",
+            }
+        ),
+    )
+    st.markdown("#### Instalaciones: contexto público")
+    st.caption(
+        "El mapa usa municipios de referencia y misiones institucionales generales. No muestra "
+        "posiciones precisas, disponibilidad, nivel de alerta, inventario, rutas ni despliegues."
+    )
+    if installations.empty:
+        st.info(installations_error or "No hay instalaciones documentadas todavía.")
+        return
+
+    map_figure = px.scatter_map(
+        installations,
+        lat="latitude",
+        lon="longitude",
+        color="service",
+        hover_name="name",
+        hover_data={
+            "city": True,
+            "region": True,
+            "public_role": True,
+            "source_date": True,
+            "latitude": False,
+            "longitude": False,
+            "source_url": False,
+            "notes": False,
+        },
+        zoom=4.4,
+        center={"lat": 31.5, "lon": -7.5},
+        map_style="open-street-map",
+        height=500,
+        title="Instalaciones con referencia pública de las Fuerzas Armadas Reales",
+    )
+    map_figure.update_traces(marker={"size": 13})
+    map_figure.update_layout(margin={"l": 0, "r": 0, "t": 45, "b": 0})
+    st.plotly_chart(map_figure, width="stretch")
+    st.dataframe(
+        installations.rename(
+            columns={
+                "name": "Instalación",
+                "service": "Organización",
+                "city": "Municipio",
+                "region": "Región",
+                "public_role": "Misión pública general",
+                "source_url": "Fuente",
+                "source_date": "Fecha de fuente",
+                "notes": "Límite de interpretación",
+            }
+        )[
+            [
+                "Instalación",
+                "Organización",
+                "Municipio",
+                "Región",
+                "Misión pública general",
+                "Fuente",
+                "Fecha de fuente",
+                "Límite de interpretación",
+            ]
+        ],
+        column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+        width="stretch",
+        hide_index=True,
+    )
+    st.caption(
+        "La base de Dajla se sitúa en el Sáhara Occidental, territorio no autónomo según Naciones Unidas "
+        "y en disputa; su inclusión es un punto de referencia geográfico, no una posición táctica."
+    )
+
+
+def render_morocco_public_defence_context(external_revision: tuple[tuple[str, int], ...]) -> None:
+    """Group leadership, installations and personnel context for Morocco, mirroring Spain's layout."""
+    st.subheader("Instalaciones, personal y mandos: contexto público")
+    render_morocco_installations_map(external_revision)
+    render_morocco_leadership_context(external_revision)
+    render_morocco_personnel_context(external_revision)
+
+
+def render_morocco_navy_vessels(external_revision: tuple[tuple[str, int], ...]) -> None:
+    """Show publicly described Royal Moroccan Navy vessel classes without operational detail."""
+    vessels, vessels_error = load_external_catalog(
+        external_revision,
+        "representative_navy_vessels_morocco.csv",
+        frozenset({"vessel_or_class", "type", "public_role", "highlight", "source_url", "notes"}),
+    )
+    st.subheader("Buques representativos de la Armada Real")
+    st.caption(
+        "Selección de clases documentadas en fuentes enciclopédicas. No refleja ubicación, "
+        "disponibilidad ni misión actual de ninguna unidad."
+    )
+    if vessels.empty:
+        st.info(vessels_error or "No hay buques documentados todavía.")
+        return
+    st.dataframe(
+        vessels.rename(
+            columns={
+                "vessel_or_class": "Buque o clase",
+                "type": "Tipo",
+                "public_role": "Función principal",
+                "highlight": "Destacado",
+                "source_url": "Fuente",
+                "notes": "Nota",
+            }
+        ),
+        column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+        width="stretch",
+        hide_index=True,
+    )
+
+
+def render_morocco_equipment_catalog(external_revision: tuple[tuple[str, int], ...]) -> None:
+    """Show a public equipment catalogue for Morocco without operational inventory details."""
+    st.subheader("Equipos de referencia del Ejército de Tierra y las Fuerzas Reales Aéreas")
+    st.caption(
+        "Catálogo de familias de equipo documentadas en fuentes enciclopédicas y de prensa "
+        "especializada. No es un inventario: no informa de existencias, disponibilidad ni ubicación operativa."
+    )
+    equipment, equipment_error = load_external_catalog(
+        external_revision,
+        "public_defence_equipment_morocco.csv",
+        frozenset(
+            {
+                "service",
+                "category",
+                "system_or_family",
+                "public_role",
+                "public_status",
+                "official_source_url",
+                "accessed_on",
+                "notes",
+            }
+        ),
+    )
+    if equipment.empty:
+        st.info(equipment_error or "No hay equipos documentados todavía.")
+        return
+
+    categories = sorted(equipment["category"].dropna().unique())
+    selected_categories = st.multiselect(
+        "Categorías de equipo",
+        categories,
+        default=categories,
+        key="morocco_equipment_categories",
+    )
+    selected_equipment = equipment[equipment["category"].isin(selected_categories)]
+    st.dataframe(
+        selected_equipment.rename(
+            columns={
+                "service": "Rama",
+                "category": "Categoría",
+                "system_or_family": "Sistema o familia",
+                "public_role": "Función pública",
+                "public_status": "Estado descrito",
+                "official_source_url": "Fuente",
+                "accessed_on": "Consultado",
+                "notes": "Límite de interpretación",
+            }
+        ),
+        column_config={
+            "Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente"),
+        },
+        width="stretch",
+        hide_index=True,
+    )
+    st.warning(
+        "Marruecos no publica un catálogo oficial de material equivalente al del Ejército de Tierra "
+        "español: estas familias proceden de Wikipedia (a su vez con cita a EDA, UNROCA, SIPRI Trade "
+        "Registers e IISS) y de prensa especializada que reporta aprobaciones de venta de EE. UU. (DSCA). "
+        "Una aprobación de venta no equivale a una entrega ni a unidades en servicio."
+    )
+
+
+def render_morocco_cyber_breakdown(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
+    """Show cyberattacks given and received involving Morocco, integrated into its defence tab."""
+    st.divider()
+    st.subheader("Ciberseguridad: ataques dados y recibidos")
+    st.info(
+        "**Criterio de evidencia:** la atribución de un ciberataque a un Estado o actor "
+        "solo se muestra como hecho si existe evidencia pública concluyente o resolución competente. "
+        "Marruecos niega categóricamente las acusaciones descritas a continuación."
+    )
+    events, error = data["events"]
+    pegasus = events[events["topic"].eq("Pegasus")] if not events.empty else pd.DataFrame()
+    if pegasus.empty:
+        empty_data_message(error, "Registro documental de Pegasus")
+        return
+
+    given_col, received_col = st.columns(2)
+    with given_col:
+        st.markdown("#### 🎯 Ataques dados (Marruecos como origen señalado)")
+        st.markdown(
+            "El Pegasus Project (Forbidden Stories, julio de 2021) señaló a Marruecos entre los "
+            "presuntos clientes de NSO Group tras aparecer números de dirigentes internacionales "
+            "—incluidos los de España y Francia— en una lista filtrada de posible interés. "
+            "**Marruecos niega categóricamente** haber usado Pegasus contra estos países; no existe "
+            "una condena judicial que confirme la atribución, solo indicios periodísticos."
+        )
+    with received_col:
+        st.markdown("#### 🇲🇦 Ataques recibidos")
+        st.info(
+            "No se ha localizado en fuentes verificables un registro público y trazable de "
+            "ciberataques recibidos por Marruecos, equivalente en detalle al caso CatalanGate "
+            "en España. Este apartado permanece pendiente de una fuente primaria marroquí o "
+            "internacional que lo documente."
+        )
+    st.subheader("Cronología documental (compartida con la pestaña de España)")
+    render_pegasus_events_table(pegasus)
+    st.caption(
+        "La misma cronología de hechos vinculados a Pegasus se muestra en ambas pestañas de defensa "
+        "porque el caso conecta a España y Marruecos: solo cambia el ángulo narrativo (origen vs. objetivo)."
+    )
+
 
 def render_representative_navy_vessels(
     external_revision: tuple[tuple[str, int], ...],
@@ -1224,6 +1666,113 @@ def render_public_defence_context(
         )
 
 
+def render_spain_morocco_head_to_head(military: pd.DataFrame) -> None:
+    """Show a dedicated Spain vs Morocco comparison: the project's main geopolitical pairing."""
+    st.subheader("España vs Marruecos: cara a cara")
+    st.caption(
+        "Comparación directa de los dos países centrales del proyecto. Usa la misma serie SIPRI "
+        "que el resto del panel; no mezcla metodologías OTAN ni presupuestos nacionales."
+    )
+    both = military[military["country"].isin(["Spain", "Morocco"])].copy()
+    if both.empty:
+        st.info("No hay registros de España ni Marruecos en el conjunto cargado.")
+        return
+    both["year"] = pd.to_numeric(both["year"], errors="coerce")
+    both = both.dropna(subset=["year"]).sort_values("year")
+    both = convert_usd_to_eur(
+        both,
+        ["military_expenditure_constant_usd", "military_expenditure_per_capita_usd"],
+    )
+    latest_both = latest_by_country(military)
+    latest_both = convert_usd_to_eur(
+        latest_both,
+        ["military_expenditure_constant_usd", "military_expenditure_per_capita_usd"],
+    )
+    latest_both = latest_both[latest_both["country"].isin(["Spain", "Morocco"])]
+    spain_row = latest_both[latest_both["country"].eq("Spain")]
+    morocco_row = latest_both[latest_both["country"].eq("Morocco")]
+
+    spain_col, morocco_col = st.columns(2)
+    with spain_col:
+        st.markdown("#### 🇪🇸 España")
+        if spain_row.empty:
+            st.info("Sin registro de España.")
+        else:
+            record = spain_row.iloc[0]
+            st.metric("Gasto militar", format_eur(record["military_expenditure_constant_usd"]))
+            st.metric(
+                "Gasto / PIB",
+                f"{record['military_expenditure_pct_gdp']:.2f}%" if pd.notna(record["military_expenditure_pct_gdp"]) else "No disponible",
+            )
+            st.metric(
+                "Gasto per cápita",
+                f"EUR {record['military_expenditure_per_capita_usd']:,.0f}" if pd.notna(record["military_expenditure_per_capita_usd"]) else "No disponible",
+            )
+            st.caption(f"Último año disponible: {int(record['year'])}.")
+    with morocco_col:
+        st.markdown("#### 🇲🇦 Marruecos")
+        if morocco_row.empty:
+            st.info("Sin registro de Marruecos.")
+        else:
+            record = morocco_row.iloc[0]
+            st.metric("Gasto militar", format_eur(record["military_expenditure_constant_usd"]))
+            st.metric(
+                "Gasto / PIB",
+                f"{record['military_expenditure_pct_gdp']:.2f}%" if pd.notna(record["military_expenditure_pct_gdp"]) else "No disponible",
+            )
+            st.metric(
+                "Gasto per cápita",
+                f"EUR {record['military_expenditure_per_capita_usd']:,.0f}" if pd.notna(record["military_expenditure_per_capita_usd"]) else "No disponible",
+            )
+            st.caption(f"Último año disponible: {int(record['year'])}.")
+
+    expenditure_col, effort_col = st.columns(2)
+    with expenditure_col:
+        expenditure_chart = px.line(
+            both,
+            x="year",
+            y="military_expenditure_constant_usd",
+            color="country",
+            markers=True,
+            labels={
+                "year": "Año",
+                "military_expenditure_constant_usd": "Gasto militar (EUR constantes aprox.)",
+                "country": "País",
+            },
+            title="Gasto militar: España vs Marruecos",
+        )
+        st.plotly_chart(expenditure_chart, width="stretch")
+    with effort_col:
+        effort_chart = px.line(
+            both,
+            x="year",
+            y="military_expenditure_pct_gdp",
+            color="country",
+            markers=True,
+            labels={"year": "Año", "military_expenditure_pct_gdp": "Gasto militar (% del PIB)", "country": "País"},
+            title="Esfuerzo de defensa (% del PIB): España vs Marruecos",
+        )
+        st.plotly_chart(effort_chart, width="stretch")
+
+    per_capita_chart = px.bar(
+        latest_both.sort_values("country"),
+        x="country",
+        y="military_expenditure_per_capita_usd",
+        color="country",
+        labels={
+            "country": "País",
+            "military_expenditure_per_capita_usd": "Gasto militar per cápita (EUR aprox.)",
+        },
+        title="Gasto militar per cápita: España vs Marruecos (último año disponible de cada país)",
+    )
+    st.plotly_chart(per_capita_chart, width="stretch")
+    st.warning(
+        "España y Marruecos pueden tener el último año disponible en fechas distintas en la serie SIPRI; "
+        "verifica el año de cada barra antes de citar la comparación per cápita como simultánea."
+    )
+    st.divider()
+
+
 def render_comparison(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
     st.header("Comparación internacional")
     military, error = data["military"]
@@ -1231,11 +1780,14 @@ def render_comparison(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
         empty_data_message(error, "D01 y D04")
         return
 
+    render_spain_morocco_head_to_head(military)
+
     latest = latest_by_country(military)
     latest = convert_usd_to_eur(
         latest,
         ["military_expenditure_constant_usd", "military_expenditure_per_capita_usd"],
     )
+    st.subheader("Comparación multipaís")
     available = [country for country in COUNTRY_ORDER if country in set(latest["country"])]
     chosen = st.multiselect("Países", available, default=available)
     selected = latest[latest["country"].isin(chosen)].copy()
@@ -1285,83 +1837,69 @@ def render_comparison(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
     )
 
 
-def render_cybersecurity(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
-    st.header("Ciberseguridad y caso Pegasus")
-    st.info(
-        "**Criterio de evidencia:** la atribución de un ciberataque a un Estado o actor "
-        "solo se mostrará como hecho si existe evidencia pública concluyente o resolución competente."
-    )
-    cyber, error = data["cyber"]
-    if cyber.empty:
-        empty_data_message(error, "D10, D11 y D12")
-    else:
-        chart = px.bar(
-            cyber,
-            x="category",
-            y="incidents",
-            color="source_organization",
-            animation_frame="year" if cyber["year"].nunique() > 1 else None,
-            labels={"category": "Categoría", "incidents": "Incidentes reportados"},
-            title="Gráfica 5 — Incidentes ciber reportados por categoría y organismo",
-        )
-        st.plotly_chart(chart, width="stretch")
-
-    st.subheader("Gráfica 6 — Cronología de hechos y fuentes")
-    events, event_error = data["events"]
-    pegasus = events[events["topic"].eq("Pegasus")] if not events.empty else pd.DataFrame()
-    if pegasus.empty:
-        empty_data_message(event_error, "Registro documental de Pegasus")
-    else:
-        st.dataframe(
-            pegasus.sort_values("event_date"),
-            width="stretch",
-            hide_index=True,
-            column_config={"source_url": st.column_config.LinkColumn("Fuente")},
-        )
-
-
-def render_border(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
-    st.header("Marruecos, Ceuta y Melilla")
-    st.caption(
-        "Los datos de llegadas, intentos e interceptaciones no son equivalentes. "
-        "Cada visualización debe conservar exactamente la definición de su fuente."
-    )
-    border, error = data["border"]
-    if border.empty:
-        empty_data_message(error, "D07 y D08")
-    else:
-        terrestrial_border = border[border["entry_route"].eq("Vía terrestre")]
-        chart = px.bar(
-            terrestrial_border,
-            x="period",
-            y="arrivals",
-            color="territory",
-            barmode="group",
-            labels={
-                "period": "Periodo",
-                "arrivals": "Llegadas registradas",
-                "territory": "Territorio",
-            },
-            title="Gráfica 7 — Llegadas registradas por vía terrestre y territorio",
-        )
-        st.plotly_chart(chart, width="stretch")
-
-    events, _ = data["events"]
-    border_events = events[events["topic"].eq("Frontera")] if not events.empty else pd.DataFrame()
-    if not border_events.empty:
-        st.subheader("Acontecimientos documentados")
-        st.dataframe(border_events.sort_values("event_date"), width="stretch", hide_index=True)
-
-
-def render_morocco_israel(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
-    st.header("Israel / Marruecos")
+def render_abraham_accords_alliance(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
+    """Explain Morocco's Abraham Accords alignment and its arms-supply consequences."""
+    st.header("Alianza — Acuerdos de Abraham")
     st.info(
         "Esta sección diferencia acuerdos anunciados, contratos, entregas y despliegues "
-        "verificados. Una afirmación de un fabricante o de prensa no prueba por sí sola la operatividad de un sistema."
+        "verificados. Una afirmación de un fabricante o de prensa no prueba por sí sola la "
+        "operatividad de un sistema."
     )
-    arms, error = data["arms"]
+    st.subheader("Cronología: normalización con Israel y giro sobre el Sáhara Occidental")
+    events, error = data["events"]
+    alliance_events = events[events["topic"].eq("Alianza")] if not events.empty else pd.DataFrame()
+    if alliance_events.empty:
+        empty_data_message(error, "Registro documental de la alianza")
+    else:
+        st.dataframe(
+            alliance_events.sort_values("event_date").rename(
+                columns={
+                    "event_date": "Fecha",
+                    "event_title": "Hecho",
+                    "topic": "Tema",
+                    "evidence_level": "Nivel de evidencia",
+                    "source_url": "Fuente",
+                    "notes": "Nota",
+                }
+            ),
+            width="stretch",
+            hide_index=True,
+            column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+        )
+    st.markdown(
+        "El 10 de diciembre de 2020, Marruecos se convirtió en el cuarto país árabe en normalizar "
+        "relaciones con Israel dentro de los Acuerdos de Abraham. A cambio, Estados Unidos reconoció "
+        "la soberanía marroquí sobre el Sáhara Occidental mediante una proclamación presidencial "
+        "(24 de diciembre de 2020), un paso que **España, la Unión Europea y la ONU no han "
+        "reconocido** de la misma forma. El 14 de marzo de 2022, Pedro Sánchez giró la posición "
+        "histórica de España al respaldar el plan de autonomía marroquí en una carta al rey "
+        "Mohammed VI, una decisión unilateral criticada por su propio socio de gobierno."
+    )
+    st.warning(
+        "El Tribunal de Justicia de la UE ha resuelto en varias ocasiones (2016, 2018, 2021) que los "
+        "acuerdos comerciales UE-Marruecos no se aplican al Sáhara Occidental sin el consentimiento "
+        "de su población. La postura española de 2022 no representa la posición común de la UE."
+    )
+
+    st.subheader("Cooperación militar Israel-Marruecos y rearme de EE. UU.")
+    st.markdown(
+        "Marruecos e Israel firmaron su primer acuerdo de defensa bilateral en noviembre de 2021, "
+        "seguido en 2023 de memorandos de cooperación en aeronáutica, inteligencia artificial, "
+        "seguridad militar y ciberseguridad. En paralelo, Estados Unidos aprobó ventas de armamento "
+        "de gran volumen a Marruecos por la Agencia de Cooperación en Seguridad de Defensa (DSCA), "
+        "incluida la aprobación de 2019 por 4.250 millones de USD para helicópteros de ataque "
+        "AH-64E Apache."
+    )
+    st.caption(
+        "Sistemas específicos reportados por prensa especializada (drones Blue Bird/ThunderB, "
+        "sistema antidrones Skylock, defensa aérea Barak MX) no han podido verificarse de forma "
+        "directa en fuentes primarias en este proyecto; deben tratarse como reportados, no confirmados, "
+        "hasta contrastarlos con Defense News, Janes o Africa Intelligence."
+    )
+
+    arms, arms_error = data["arms"]
     if arms.empty:
-        empty_data_message(error, "D02")
+        empty_data_message(arms_error, "D02")
         return
 
     focused = arms[
@@ -1376,34 +1914,107 @@ def render_morocco_israel(data: dict[str, tuple[pd.DataFrame, str | None]]) -> N
         y="sipri_tiv",
         color="supplier",
         labels={"year": "Año", "sipri_tiv": "Valor SIPRI TIV", "supplier": "Proveedor"},
-        title="Gráfica 8 — Transferencias relacionadas con Marruecos o Israel",
+        title="Transferencias de armas relacionadas con Marruecos o Israel",
     )
     st.plotly_chart(chart, width="stretch")
     st.caption("El TIV de SIPRI no es un precio contractual ni un presupuesto militar.")
 
 
-def render_rota_nato() -> None:
-    st.header("Rota / OTAN")
-    st.success("Hecho confirmado — OTAN: España alberga en Rota cuatro buques estadounidenses AEGIS con capacidad BMD para la misión aliada cuando sea necesario.")
-    stages = ["España", "Base Naval de Rota", "Buques AEGIS con capacidad BMD", "Defensa antimisiles de la OTAN"]
+def render_spain_nato(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
+    """Expand Spain's NATO role beyond Rota: Madrid Summit, KFOR, and 2% GDP commitment."""
+    st.header("España-OTAN")
+    st.success(
+        "Hecho confirmado — OTAN: en la Cumbre de Madrid de 2022 se acordó ampliar de 4 a 6 los "
+        "destructores estadounidenses AEGIS con capacidad BMD en la Base Naval de Rota, con 600 "
+        "militares adicionales; el acuerdo de extensión se firmó en mayo de 2023."
+    )
+    stages = [
+        "España",
+        "Base Naval de Rota",
+        "4 buques AEGIS (2015-2022)",
+        "6 buques AEGIS (desde 2023)",
+        "Defensa antimisiles de la OTAN",
+    ]
     figure = go.Figure(
         go.Sankey(
             node={"label": stages, "pad": 30, "thickness": 25},
-            link={"source": [0, 1, 2], "target": [1, 2, 3], "value": [1, 1, 1]},
+            link={"source": [0, 1, 1, 2, 3], "target": [1, 2, 3, 4, 4], "value": [1, 1, 1, 1, 1]},
         )
     )
     figure.update_layout(
-        title="Gráfica 9 — Papel documentado de Rota dentro de la arquitectura BMD",
-        height=350,
+        title="Papel documentado de Rota dentro de la arquitectura BMD de la OTAN",
+        height=380,
     )
     st.plotly_chart(figure, width="stretch")
+
+    st.subheader("Cronología: compromisos, Rota y la Cumbre de Madrid")
+    events, error = data["events"]
+    nato_events = events[events["topic"].eq("OTAN")] if not events.empty else pd.DataFrame()
+    if nato_events.empty:
+        empty_data_message(error, "Registro documental OTAN")
+    else:
+        st.dataframe(
+            nato_events.sort_values("event_date").rename(
+                columns={
+                    "event_date": "Fecha",
+                    "event_title": "Hecho",
+                    "topic": "Tema",
+                    "evidence_level": "Nivel de evidencia",
+                    "source_url": "Fuente",
+                    "notes": "Nota",
+                }
+            ),
+            width="stretch",
+            hide_index=True,
+            column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+        )
+
+    st.subheader("Compromiso del 2% del PIB")
     st.markdown(
-        "Fuente: [NATO — Ballistic Missile Defence](https://www.nato.int/en/what-we-do/"
-        "deterrence-and-defence/ballistic-missile-defence)."
+        "España firmó en la Cumbre de Gales (2014) el compromiso de acercar su gasto en defensa "
+        "al 2% del PIB junto al resto de aliados; en ese momento España gastaba en torno al 0,9% "
+        "del PIB. Es históricamente uno de los aliados con menor porcentaje de gasto respecto al PIB "
+        "dentro de la OTAN. La Cumbre de Madrid (2022) reiteró el objetivo y en el proyecto se maneja "
+        "un horizonte de 2029 para varios aliados rezagados, en línea con el objetivo de planificación "
+        "de efectivos ya documentado en la pestaña de Defensa de España."
+    )
+    st.warning(
+        "Las cifras exactas de cumplimiento anual de España deben verificarse en las estadísticas de "
+        "gasto en defensa de la OTAN (nato.int) y en los presupuestos del Ministerio de Defensa; "
+        "este proyecto no fija una cifra concreta sin esa fuente primaria."
+    )
+
+    st.subheader("Otras contribuciones de España a la OTAN")
+    contributions = pd.DataFrame(
+        [
+            (
+                "KFOR (Kosovo)",
+                "España contribuye desde el inicio de la misión en junio de 1999, bajo la resolución 1244 de la ONU. KFOR cuenta actualmente con unos 4.500 efectivos de aliados y socios.",
+            ),
+            (
+                "Rota — buques AEGIS BMD",
+                "4 destructores desde 2015 (anunciados por el secretario de Defensa de EE. UU., Leon Panetta, en 2011); ampliación a 6 acordada en la Cumbre de Madrid de 2022 y firmada en mayo de 2023.",
+            ),
+            (
+                "Operation Sea Guardian",
+                "Participación con activos navales y aéreos en el Mediterráneo, operación activa desde noviembre de 2016.",
+            ),
+            (
+                "Policía Aérea del Báltico / flanco Este",
+                "Despliegues de caza españoles reportados en misiones de vigilancia aérea aliada; verificar despliegue vigente en defensa.gob.es antes de citarlo como activo.",
+            ),
+        ],
+        columns=["Contribución", "Descripción"],
+    )
+    st.dataframe(contributions, width="stretch", hide_index=True)
+    st.caption(
+        "Fuentes: NATO — Ballistic Missile Defence (nato.int), Wikipedia (Naval Station Rota, "
+        "2022 Madrid NATO summit) y páginas de operaciones de la OTAN (nato.int/en/what-we-do/"
+        "operations-and-missions)."
     )
 
 
-def render_risk_matrix() -> None:
+def render_risk_matrix(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
     st.header("Escenarios de riesgo")
     st.warning(
         "Matriz analítica creada para este proyecto. Las puntuaciones no son probabilidades "
@@ -1417,7 +2028,7 @@ def render_risk_matrix() -> None:
             ("Desinformación", 5, 3),
             ("Fenómeno meteorológico extremo", 4, 4),
             ("Problemas de suministro", 2, 4),
-            ("Emergencia fronteriza", 2, 3),
+            ("Emergencia fronteriza / crisis migratoria masiva", 3, 3),
             ("Evacuación local", 2, 5),
             ("Conflicto militar directo", 1, 5),
         ],
@@ -1438,11 +2049,61 @@ def render_risk_matrix() -> None:
         text="Escenario",
         range_x=[0.5, 5.5],
         range_y=[0.5, 5.5],
-        title="Gráfica 10 — Matriz de riesgo experimental",
+        title="Matriz de riesgo experimental",
     )
     chart.update_traces(textposition="top center")
     st.plotly_chart(chart, width="stretch")
     st.dataframe(scenarios, width="stretch", hide_index=True)
+
+    st.divider()
+    st.subheader("Caso documentado: crisis migratoria masiva (Ceuta, mayo de 2021)")
+    st.caption(
+        "Este caso ilustra el escenario 'Emergencia fronteriza / crisis migratoria masiva' con hechos "
+        "verificados, no una simulación. Distingue lo confirmado por fuentes oficiales de lo meramente "
+        "reportado o no verificado en esta investigación."
+    )
+    events, error = data["events"]
+    border_events = events[events["topic"].eq("Frontera")] if not events.empty else pd.DataFrame()
+    if border_events.empty:
+        empty_data_message(error, "Registro documental de la frontera")
+    else:
+        st.dataframe(
+            border_events.sort_values("event_date").rename(
+                columns={
+                    "event_date": "Fecha",
+                    "event_title": "Hecho",
+                    "topic": "Tema",
+                    "evidence_level": "Nivel de evidencia",
+                    "source_url": "Fuente",
+                    "notes": "Nota",
+                }
+            ),
+            width="stretch",
+            hide_index=True,
+            column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+        )
+    st.markdown(
+        "**Cómo se desencadenó (mayo de 2021):** una disputa diplomática (la hospitalización en España "
+        "del líder del Frente Polisario, Brahim Ghali) coincidió con la retirada de controles fronterizos "
+        "marroquíes. En 72 horas cruzaron a Ceuta unas 10.000 personas, muchas a nado, entre ellas miles "
+        "de menores. Human Rights Watch documentó devoluciones sumarias inmediatas, incluidas de menores "
+        "no acompañados, hasta que el Defensor del Pueblo y un tribunal local ordenaron su cese."
+    )
+    st.markdown(
+        "**El papel de la desinformación:** según fuentes periodísticas (sin una URL primaria de "
+        "verificador que se haya podido confirmar en esta investigación), circularon mensajes de audio "
+        "por WhatsApp y Telegram en darija y francés afirmando que la frontera estaba abierta, lo que "
+        "actuó como efecto llamada. En la tragedia de la valla de Melilla (24 de junio de 2022), un "
+        "ultimátum de 24 horas de las autoridades marroquíes a personas migrantes asentadas en los "
+        "montes de Nador tuvo un efecto similar: una señal ambigua sobre una 'oportunidad' de cruce que "
+        "impulsó un intento masivo y coordinado, con al menos 23 muertos confirmados."
+    )
+    st.warning(
+        "**Lección para la ciudadanía:** un mensaje viral sobre 'fronteras abiertas' o 'permisos "
+        "especiales' que no proceda de un canal oficial (112, Delegación del Gobierno, Ministerio del "
+        "Interior o de Exteriores) debe tratarse como no verificado. Verifica siempre en la fuente "
+        "oficial antes de actuar o reenviar, y consulta www.maldita.es o www.newtral.es para contrastar bulos."
+    )
 
 
 def render_civil_preparedness() -> None:
@@ -1476,13 +2137,68 @@ def render_civil_preparedness() -> None:
     else:
         level = "Preparación alta"
 
-    st.subheader("Gráfica 11 — Índice experimental de preparación civil")
+    st.subheader("Índice experimental de preparación civil")
     st.metric("Índice experimental de preparación civil", f"{score}/100", level)
     st.progress(score)
     st.caption("Cada elemento tiene el mismo peso para mantener el modelo comprensible y modificable en clase.")
     st.markdown(
         "Para recomendaciones vigentes, consulta [Protección Civil](https://www.proteccioncivil.es/), "
         "[INCIBE](https://www.incibe.es/) y los servicios 112 de tu comunidad autónoma."
+    )
+
+    st.divider()
+    st.subheader("Cuánto almacenar: kit de emergencia por persona")
+    st.caption(
+        "Referencia orientativa inspirada en campañas europeas de autoprotección (por ejemplo, la "
+        "recomendación de '72 horas' de autonomía difundida por distintas agencias de protección civil "
+        "europeas, y guías nórdicas como 'Si viene una crisis o una guerra'). No es una tabla oficial "
+        "española; verifica siempre la recomendación vigente en proteccioncivil.es antes de actuar."
+    )
+    kit = pd.DataFrame(
+        [
+            ("Agua potable", "2 litros por persona y día", "Mínimo 3 días (72 h); ideal 7 días si hay espacio."),
+            ("Alimentos no perecederos", "Aporte calórico básico por persona y día", "Conservas, frutos secos, barritas; rota el stock antes de la caducidad."),
+            ("Botiquín básico", "1 por hogar", "Incluye medicación habitual de cada miembro de la familia, con margen de varios días."),
+            ("Linterna y pilas / power bank", "1 por persona", "Evita velas por riesgo de incendio en interiores."),
+            ("Radio con pilas o manivela", "1 por hogar", "Para recibir avisos oficiales si falla la cobertura móvil."),
+            ("Documentación e efectivo", "Copias y una cantidad pequeña en metálico", "Copias de DNI/pasaporte y tarjeta sanitaria; el pago electrónico puede fallar sin suministro eléctrico."),
+            ("Silbato", "1 por persona", "Señal acústica de auxilio que gasta menos energía que gritar."),
+        ],
+        columns=["Elemento", "Cantidad orientativa", "Nota"],
+    )
+    st.dataframe(kit, width="stretch", hide_index=True)
+
+    st.subheader("Principios oficiales de evacuación")
+    st.markdown(
+        "- **No te autoevacúes sin indicación oficial** salvo peligro inmediato y evidente: sigue los "
+        "canales de Protección Civil, 112 y ayuntamiento; una evacuación desordenada puede ser más "
+        "peligrosa que quedarse en un lugar seguro conocido.\n"
+        "- **Conoce el plan de emergencia de tu municipio** (puntos de encuentro, refugios, rutas "
+        "señalizadas) antes de que ocurra cualquier suceso; consúltalo en la web de tu ayuntamiento.\n"
+        "- **Ten un plan familiar de contacto** con un punto de encuentro y un contacto fuera de la zona, "
+        "por si las redes locales se saturan.\n"
+        "- **Lleva encima solo lo esencial**: documentación, medicación, agua, algo de comida y el móvil "
+        "cargado; prioriza moverte rápido y ligero sobre cargar equipaje.\n"
+        "- **Verifica antes de compartir**: un mensaje viral sobre una ruta, una frontera o un refugio "
+        "que no proceda de una fuente oficial puede ser un bulo; contrástalo en el 112 o en verificadores "
+        "como Maldita.es o Newtral.es antes de actuar o reenviarlo."
+    )
+
+    st.subheader("Orientación básica sin GPS: el método de la sombra")
+    st.markdown(
+        "Si te quedas sin batería o cobertura y necesitas saber dónde está el norte aproximado:\n"
+        "1. Clava un palo recto y vertical en el suelo, en una zona despejada de sol.\n"
+        "2. Marca con una piedra el extremo de la sombra que proyecta.\n"
+        "3. Espera entre 10 y 15 minutos: la sombra se habrá desplazado. Marca el nuevo extremo.\n"
+        "4. Traza una línea recta entre ambas marcas: esa línea señala aproximadamente **este-oeste** "
+        "(la primera marca queda al oeste, la segunda al este en el hemisferio norte).\n"
+        "5. Una línea perpendicular a esa marca indica el eje **norte-sur**.\n\n"
+        "Alternativa con reloj analógico (hemisferio norte): apunta la aguja de las horas hacia el sol; "
+        "la bisectriz entre esa aguja y las 12 señala aproximadamente el sur."
+    )
+    st.caption(
+        "Es una técnica general de orientación al aire libre, útil ante un simple corte de suministro o "
+        "pérdida de cobertura; no sustituye un GPS, una brújula ni la señalización oficial de evacuación."
     )
 
 
@@ -1564,23 +2280,18 @@ def render_sources(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
             ),
         },
         {
-            "key": "cyber",
-            "filename": "cyber_incidents.csv",
-            "description": "Incidentes ciber reportados por organismos o repositorios con metodología publicada.",
-            "data_used": "`year`, `category`, `incidents` y `source_organization`.",
-            "calculations": "Agrupación por categoría, organismo y año únicamente cuando las definiciones sean comparables.",
-            "conclusion": (
-                "Permitirá mostrar incidentes reportados, no el total real de ataques ni atribuciones concluyentes."
-            ),
-        },
-        {
             "key": "events",
             "filename": "security_events_timeline.csv",
-            "description": "Cronología documental de Pegasus, frontera y otros acontecimientos.",
-            "data_used": "`event_date`, `event_title`, `topic`, `evidence_level` y `source_url`.",
-            "calculations": "Ordenación temporal y clasificación por nivel de evidencia; no se calculan causalidades.",
+            "description": (
+                "Cronología documental de Pegasus, frontera (Ceuta/Melilla), la alianza "
+                "Marruecos-Israel-EE. UU. y la OTAN."
+            ),
+            "data_used": "`event_date`, `event_title`, `topic`, `evidence_level`, `source_url` y `notes`.",
+            "calculations": "Ordenación temporal y filtrado por tema (`Pegasus`, `Frontera`, `Alianza`, `OTAN`); no se calculan causalidades.",
             "conclusion": (
-                "Permitirá separar hechos confirmados, información oficial, periodística y atribuciones."
+                "Separa expresamente hechos confirmados, información oficial, información periodística, "
+                "atribuciones e hipótesis. Alimenta el desglose de ciberseguridad en ambas pestañas de "
+                "defensa, la pestaña de la Alianza, España-OTAN y el caso documentado en Escenarios de riesgo."
             ),
         },
     ]
@@ -1617,11 +2328,10 @@ def main() -> None:
         [
             "Overview",
             "Defensa de España",
+            "Defensa de Marruecos",
             "Comparación internacional",
-            "Ciberseguridad",
-            "Marruecos / Ceuta / Melilla",
-            "Israel / Marruecos",
-            "Rota / OTAN",
+            "Alianza — Acuerdos de Abraham",
+            "España-OTAN",
             "Escenarios de riesgo",
             "Preparación civil",
             "Fuentes",
@@ -1633,22 +2343,20 @@ def main() -> None:
     with tabs[1]:
         render_defence(data)
     with tabs[2]:
-        render_comparison(data)
+        render_morocco_defence(data)
     with tabs[3]:
-        render_cybersecurity(data)
+        render_comparison(data)
     with tabs[4]:
-        render_border(data)
+        render_abraham_accords_alliance(data)
     with tabs[5]:
-        render_morocco_israel(data)
+        render_spain_nato(data)
     with tabs[6]:
-        render_rota_nato()
+        render_risk_matrix(data)
     with tabs[7]:
-        render_risk_matrix()
-    with tabs[8]:
         render_civil_preparedness()
-    with tabs[9]:
+    with tabs[8]:
         render_sources(data)
-    with tabs[10]:
+    with tabs[9]:
         render_presentation_script()
 
 

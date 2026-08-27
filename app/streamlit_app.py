@@ -2014,6 +2014,88 @@ def render_spain_nato(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
     )
 
 
+def render_international_alliance_comparison(
+    data: dict[str, tuple[pd.DataFrame, str | None]],
+) -> None:
+    """Compare Spain's 2026 missions across international frameworks."""
+    st.header("Comparación alianzas internacionales")
+    st.info(
+        "Contraste de la participación española por marco internacional. El número de misiones "
+        "no mide efectivos, presupuesto ni capacidad militar."
+    )
+    totals, totals_error = load_external_catalog(
+        external_data_revision(),
+        "international_mission_totals_2026.csv",
+        frozenset({"framework", "missions", "description", "source_url", "source_date", "notes"}),
+    )
+    if totals.empty:
+        empty_data_message(totals_error, "Fuente institucional EMAD")
+        return
+
+    totals = totals.copy()
+    totals["missions"] = pd.to_numeric(totals["missions"], errors="coerce")
+    totals = totals.dropna(subset=["missions"])
+    total_row = totals[totals["framework"].eq("Total")]
+    frameworks = totals[~totals["framework"].eq("Total")].copy()
+    if not total_row.empty:
+        st.metric("Misiones españolas previstas para 2026", int(total_row.iloc[0]["missions"]))
+
+    st.subheader("Desglose por alianza o marco")
+    chart = px.bar(
+        frameworks.sort_values("missions"),
+        x="missions",
+        y="framework",
+        orientation="h",
+        text="missions",
+        labels={"missions": "Misiones españolas", "framework": "Marco internacional"},
+        title="Participación de España por marco internacional en 2026",
+    )
+    chart.update_traces(textposition="outside")
+    st.plotly_chart(chart, width="stretch")
+
+    display_totals = frameworks.rename(
+        columns={
+            "framework": "Marco internacional",
+            "missions": "Misiones de España",
+            "description": "Qué representa el dato",
+            "source_date": "Fecha de la fuente",
+            "notes": "Nota de contraste",
+            "source_url": "Fuente",
+        }
+    )
+    st.dataframe(
+        display_totals[
+            ["Marco internacional", "Misiones de España", "Qué representa el dato",
+             "Fecha de la fuente", "Nota de contraste", "Fuente"]
+        ],
+        width="stretch",
+        hide_index=True,
+        column_config={"Fuente": st.column_config.LinkColumn("Fuente", display_text="Abrir fuente")},
+    )
+
+    st.subheader("España frente a los marcos internacionales")
+    comparison = pd.DataFrame(
+        [
+            ("España", "Contribuyente", "Aporta personal, medios y mandatos a operaciones concretas.", "17 misiones previstas"),
+            ("OTAN", "Alianza de defensa colectiva", "Coordina contribuciones aliadas y operaciones de la Alianza.", "8 misiones identificadas"),
+            ("Unión Europea", "Marco político y operativo europeo", "Incluye misiones militares de la UE, incluida Atalanta.", "4 misiones identificadas"),
+            ("ONU", "Mandato internacional", "Agrupa las contribuciones bajo mandato de Naciones Unidas.", "2 misiones identificadas"),
+            ("Coalición internacional", "Cooperación específica", "Agrupa la contribución a la operación de apoyo a Irak.", "1 misión identificada"),
+        ],
+        columns=["Actor o marco", "Tipo", "Papel contrastado", "Indicador disponible"],
+    )
+    st.dataframe(comparison, width="stretch", hide_index=True)
+    st.warning(
+        "El total de 17 es un recuento del listado EMAD, no 17 despliegues independientes. "
+        "Algunas actividades se agrupan y otras no se desagregan por componentes. No permite "
+        "concluir qué alianza es más fuerte."
+    )
+    st.caption(
+        "No se comparan presupuestos o efectivos de las alianzas porque este proyecto no ofrece "
+        "una serie homogénea para esos indicadores."
+    )
+
+
 def render_risk_matrix(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
     st.header("Escenarios de riesgo")
     st.warning(
@@ -2332,6 +2414,7 @@ def main() -> None:
             "Comparación internacional",
             "Alianza — Acuerdos de Abraham",
             "España-OTAN",
+            "Comparación alianzas internacionales",
             "Escenarios de riesgo",
             "Preparación civil",
             "Fuentes",
@@ -2351,12 +2434,14 @@ def main() -> None:
     with tabs[5]:
         render_spain_nato(data)
     with tabs[6]:
-        render_risk_matrix(data)
+        render_international_alliance_comparison(data)
     with tabs[7]:
-        render_civil_preparedness()
+        render_risk_matrix(data)
     with tabs[8]:
-        render_sources(data)
+        render_civil_preparedness()
     with tabs[9]:
+        render_sources(data)
+    with tabs[10]:
         render_presentation_script()
 
 

@@ -6,6 +6,7 @@ Run from the repository root with:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -20,15 +21,28 @@ PROCESSED_DATA_DIR = ROOT / "data" / "processed"
 EXTERNAL_DATA_DIR = ROOT / "data" / "external"
 REPORTS_DIR = ROOT / "reports"
 INTERNATIONAL_MISSIONS_MAP_PATH = ROOT / "app" / "assets" / "international_missions_map.png"
+CEUTA_BOUNDARY_PATH = ROOT / "app" / "assets" / "ceuta_boundary.geojson"
+MOROCCO_BOUNDARY_PATH = ROOT / "app" / "assets" / "morocco_boundary.geojson"
 PERSONNEL_IMAGE_PATHS = {
     "active": ROOT / "app" / "assets" / "personnel_active.svg",
     "international": ROOT / "app" / "assets" / "personnel_international.svg",
     "reserve": ROOT / "app" / "assets" / "personnel_reserve.svg",
 }
+UNIT_IMAGE_PATHS = {
+    "BRIPAC": ROOT / "app" / "assets" / "bripac.png",
+    "BRILEG": ROOT / "app" / "assets" / "brileg.png",
+    "Guzmán el Bueno X": ROOT / "app" / "assets" / "guzman_bueno.png",
+    "Ala 11": ROOT / "app" / "assets" / "ala_11.png",
+    "CIFAS": ROOT / "app" / "assets" / "cifas.png",
+    "MCCE": ROOT / "app" / "assets" / "mcce.png",
+    "Infantería de Marina": ROOT / "app" / "assets" / "infanteria_marina.png",
+    "Infantería": ROOT / "app" / "assets" / "infanteria.png",
+}
 
 COUNTRY_ORDER = [
     "Spain",
     "Morocco",
+    "Israel",
     "France",
     "Germany",
     "Italy",
@@ -267,12 +281,52 @@ def format_eur(value: float) -> str:
     return f"EUR {value * EUR_PER_USD_2024 / 1_000_000_000:,.1f} mil millones"
 
 
+def format_gdp_total(value: float) -> str:
+    if pd.isna(value):
+        return "No disponible"
+    return f"EUR {value * EUR_PER_USD_2024 / 1_000_000_000:,.1f} mil millones"
+
+
+def alliance_for_country(country: str) -> str:
+    if country in {"Spain", "France", "Germany", "Italy"}:
+        return "UE"
+    if country in {"Morocco", "Israel"}:
+        return "Abraham"
+    if country in {"United Kingdom", "United States"}:
+        return "OTAN / Atlántico"
+    return "No definida"
+
+
+def alliance_cell_style(value: str) -> str:
+    if value == "UE":
+        return "background-color: #dbeafe; color: #0b3d91; font-weight: 600;"
+    if value == "Abraham":
+        return "background-color: #fee2e2; color: #991b1b; font-weight: 600;"
+    if value == "OTAN / Atlántico":
+        return "background-color: #e0f2fe; color: #075985; font-weight: 600;"
+    return "background-color: #f3f4f6; color: #374151;"
+
+
 def convert_usd_to_eur(frame: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
     """Create a display copy with monetary USD fields converted to base-year euros."""
     converted = frame.copy()
     for column in columns:
         converted[column] = pd.to_numeric(converted[column], errors="coerce") * EUR_PER_USD_2024
     return converted
+
+
+def render_scrollable_plotly_chart(fig: go.Figure, min_width: int = 1100) -> None:
+    """Wrap a Plotly figure in a horizontally-scrollable container for presentation mode."""
+    fig.update_layout(width=min_width)
+    st.markdown(
+        f"""
+        <div style="overflow-x: auto; overflow-y: hidden; padding-bottom: 0.4rem;">
+            <div style="min-width: {min_width}px;">
+        """,
+        unsafe_allow_html=True,
+    )
+    st.plotly_chart(fig, use_container_width=False, width=min_width)
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 
 def render_overview(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
@@ -287,6 +341,7 @@ def render_overview(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
     )
 
     military, military_error = data["military"]
+    macro, macro_error = data["macro"]
     if military.empty:
         empty_data_message(military_error, "D01, D03 y D04")
         render_international_missions_map()
@@ -294,28 +349,220 @@ def render_overview(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
         return
 
     latest = latest_by_country(military)
+    latest_eur = convert_usd_to_eur(
+        latest,
+        ["military_expenditure_constant_usd", "military_expenditure_per_capita_usd"],
+    )
+    latest_macro = latest_by_country(macro) if not macro.empty else pd.DataFrame(columns=["country", "year", "gdp_current_usd"])
+    latest_macro_eur = convert_usd_to_eur(latest_macro, ["gdp_current_usd"]) if not latest_macro.empty else latest_macro.copy()
     spain = latest[latest["country"].eq("Spain")]
-    countries = latest["country"].nunique()
+    countries_in_order = [country for country in COUNTRY_ORDER if country in set(latest["country"])]
     if spain.empty:
         st.warning("El CSV se cargó, pero no contiene el país `Spain`.")
         return
 
     spanish_record = spain.iloc[0]
-    columns = st.columns(4)
-    columns[0].metric("Gasto militar de España", format_eur(spanish_record["military_expenditure_constant_usd"]))
-    columns[1].metric("Gasto / PIB", f"{spanish_record['military_expenditure_pct_gdp']:.2f}%")
-    columns[2].metric(
+    metric_column = st.columns(1)[0]
+    metric_column.metric("Gasto militar de España", format_eur(spanish_record["military_expenditure_constant_usd"]))
+    metric_column.metric("Gasto / PIB", f"{spanish_record['military_expenditure_pct_gdp']:.2f}%")
+    metric_column.metric(
         "Gasto per cápita",
         f"EUR {spanish_record['military_expenditure_per_capita_usd'] * EUR_PER_USD_2024:,.0f}",
     )
-    columns[3].metric("Países analizados", countries)
+    st.markdown(f"**Países analizados:** {', '.join(countries_in_order)}")
+    st.markdown(
+        "<div style='display:flex; gap: 1rem; flex-wrap: wrap; font-size: 0.9rem;'>"
+        "<span style='padding: 0.2rem 0.5rem; border-radius: 999px; background: #dbeafe; color: #0b3d91; font-weight: 600;'>Azul = UE</span>"
+        "<span style='padding: 0.2rem 0.5rem; border-radius: 999px; background: #fee2e2; color: #991b1b; font-weight: 600;'>Rojo = Abraham</span>"
+        "<span style='padding: 0.2rem 0.5rem; border-radius: 999px; background: #e0f2fe; color: #075985; font-weight: 600;'>Celeste = OTAN / Atlántico</span>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    comparison_rows = [
+        {
+            "País": "España",
+            "PIB 2025 (USD)": 1_906_453_000_000,
+            "Gasto militar 2025 (USD)": 37_694_830_000,
+            "Gasto militar 2025 como % del PIB": 2.128921,
+            "Gasto militar per cápita 2025 (USD)": 839.402031,
+            "Gasto en defensa 2026 proyectado/estimado (USD)": 41_767_000_000,
+            "Gasto en defensa 2026 como % del PIB": 2.19,
+            "Variación porcentual 2025 → 2026": ((41_767_000_000 - 37_694_830_000) / 37_694_830_000) * 100,
+            "Alianza": "UE",
+        },
+        {
+            "País": "Marruecos",
+            "PIB 2025 (USD)": 182_374_300_000,
+            "Gasto militar 2025 (USD)": 5_881_738_000,
+            "Gasto militar 2025 como % del PIB": 3.543106,
+            "Gasto militar per cápita 2025 (USD)": 165.461357,
+            "Gasto en defensa 2026 proyectado/estimado (USD)": 7_870_000_000,
+            "Gasto en defensa 2026 como % del PIB": 4.32,
+            "Variación porcentual 2025 → 2026": ((7_870_000_000 - 5_881_738_000) / 5_881_738_000) * 100,
+            "Alianza": "Abraham",
+        },
+        {
+            "País": "Francia",
+            "PIB 2025 (USD)": 3_366_316_000_000,
+            "Gasto militar 2025 (USD)": 64_515_090_000,
+            "Gasto militar 2025 como % del PIB": 2.026630,
+            "Gasto militar per cápita 2025 (USD)": 1021.121016,
+            "Gasto en defensa 2026 proyectado/estimado (USD)": 79_753_000_000,
+            "Gasto en defensa 2026 como % del PIB": 2.37,
+            "Variación porcentual 2025 → 2026": ((79_753_000_000 - 64_515_090_000) / 64_515_090_000) * 100,
+            "Alianza": "UE",
+        },
+        {
+            "País": "Alemania",
+            "PIB 2025 (USD)": 5_050_923_000_000,
+            "Gasto militar 2025 (USD)": 106_727_200_000,
+            "Gasto militar 2025 como % del PIB": 2.268511,
+            "Gasto militar per cápita 2025 (USD)": 1345.662843,
+            "Gasto en defensa 2026 proyectado/estimado (USD)": 147_002_000_000,
+            "Gasto en defensa 2026 como % del PIB": 2.91,
+            "Variación porcentual 2025 → 2026": ((147_002_000_000 - 106_727_200_000) / 106_727_200_000) * 100,
+            "Alianza": "UE",
+        },
+        {
+            "País": "Italia",
+            "PIB 2025 (USD)": 2_551_557_000_000,
+            "Gasto militar 2025 (USD)": 45_440_170_000,
+            "Gasto militar 2025 como % del PIB": 1.888727,
+            "Gasto militar per cápita 2025 (USD)": 812.542542,
+            "Gasto en defensa 2026 proyectado/estimado (USD)": 56_968_000_000,
+            "Gasto en defensa 2026 como % del PIB": 2.23,
+            "Variación porcentual 2025 → 2026": ((56_968_000_000 - 45_440_170_000) / 45_440_170_000) * 100,
+            "Alianza": "UE",
+        },
+        {
+            "País": "Reino Unido",
+            "PIB 2025 (USD)": 4_002_588_000_000,
+            "Gasto militar 2025 (USD)": 87_984_550_000,
+            "Gasto militar 2025 como % del PIB": 2.353264,
+            "Gasto militar per cápita 2025 (USD)": 1282.959075,
+            "Gasto en defensa 2026 proyectado/estimado (USD)": 117_666_000_000,
+            "Gasto en defensa 2026 como % del PIB": 2.94,
+            "Variación porcentual 2025 → 2026": ((117_666_000_000 - 87_984_550_000) / 87_984_550_000) * 100,
+            "Alianza": "OTAN / Atlántico",
+        },
+        {
+            "País": "Estados Unidos",
+            "PIB 2025 (USD)": 30_769_700_000_000,
+            "Gasto militar 2025 (USD)": 929_162_900_000,
+            "Gasto militar 2025 como % del PIB": 3.117308,
+            "Gasto militar per cápita 2025 (USD)": 2755.369008,
+            "Gasto en defensa 2026 proyectado/estimado (USD)": 1_032_849_000_000,
+            "Gasto en defensa 2026 como % del PIB": 3.36,
+            "Variación porcentual 2025 → 2026": ((1_032_849_000_000 - 929_162_900_000) / 929_162_900_000) * 100,
+            "Alianza": "OTAN / Atlántico",
+        },
+    ]
+
+    country_summary = pd.DataFrame(comparison_rows)
+    conversion_factor = EUR_PER_USD_2024
+    country_summary["PIB 2025 (EUR)"] = country_summary["PIB 2025 (USD)"].map(lambda value: f"EUR {value * conversion_factor:,.0f}")
+    country_summary["Gasto militar 2025 (EUR)"] = country_summary["Gasto militar 2025 (USD)"].map(lambda value: f"EUR {value * conversion_factor:,.0f}")
+    country_summary["Gasto militar 2025 como % del PIB"] = country_summary["Gasto militar 2025 como % del PIB"].map(lambda value: f"{value:.2f}%")
+    country_summary["Gasto militar per cápita 2025 (EUR)"] = country_summary["Gasto militar per cápita 2025 (USD)"].map(lambda value: f"EUR {value * conversion_factor:,.0f}")
+    country_summary["Gasto en defensa 2026 proyectado/estimado (EUR)"] = country_summary["Gasto en defensa 2026 proyectado/estimado (USD)"].map(lambda value: f"EUR {value * conversion_factor:,.0f}")
+    country_summary["Gasto en defensa 2026 como % del PIB"] = country_summary["Gasto en defensa 2026 como % del PIB"].map(lambda value: f"{value:.2f}%")
+    country_summary["Variación porcentual 2025 → 2026"] = country_summary["Variación porcentual 2025 → 2026"].map(lambda value: f"{value:.1f}%")
+    country_summary["Alianza"] = country_summary["Alianza"].map(
+        lambda value: "<span style='padding: 0.2rem 0.5rem; border-radius: 999px; background: #dbeafe; color: #0b3d91; font-weight: 600;'>UE</span>" if value == "UE"
+        else "<span style='padding: 0.2rem 0.5rem; border-radius: 999px; background: #fee2e2; color: #991b1b; font-weight: 600;'>Abraham</span>" if value == "Abraham"
+        else "<span style='padding: 0.2rem 0.5rem; border-radius: 999px; background: #e0f2fe; color: #075985; font-weight: 600;'>OTAN / Atlántico</span>"
+    )
+    country_summary_styler = country_summary[[
+        "País",
+        "PIB 2025 (EUR)",
+        "Gasto militar 2025 (EUR)",
+        "Gasto militar 2025 como % del PIB",
+        "Gasto militar per cápita 2025 (EUR)",
+        "Gasto en defensa 2026 proyectado/estimado (EUR)",
+        "Gasto en defensa 2026 como % del PIB",
+        "Variación porcentual 2025 → 2026",
+        "Alianza",
+    ]].style.applymap(lambda value: alliance_cell_style(value), subset=["Alianza"])
+    st.dataframe(country_summary_styler, use_container_width=True, hide_index=True, height=420)
+    if macro.empty:
+        st.info(macro_error or "No hay datos macroeconómicos para mostrar el PIB total de cada país.")
     st.caption(
         f"Último año disponible para España: {int(spanish_record['year'])}. "
         "Los importes se muestran en EUR aproximados usando el tipo medio EUR/USD de 2024; "
-        "los CSV originales permanecen en USD."
+        "los CSV originales permanecen en USD. "
+        "El gasto militar es un indicador de capacidad potencial, no de poder bélico directo: "
+        "depende de personal, tecnología, logística, industria y sostenibilidad real."
     )
     render_international_missions_map()
     render_ceuta_melilla_map(data)
+
+
+MISSION_LOCATION_COORDS: dict[str, tuple[float, float]] = {
+    "Letonia": (56.8796, 24.6032),
+    "Rumania": (45.9432, 24.9668),
+    "Eslovaquia": (48.6690, 19.6990),
+    "Turquia": (38.9637, 35.2433),
+    "Irak": (33.2232, 43.6793),
+    "Libano": (33.8547, 35.8623),
+    "Colombia": (4.5709, -74.2973),
+    "Bosnia-Herzegovina": (43.9159, 17.6791),
+    "Mediterraneo": (37.5, 15.0),
+    "Atlantico y Mediterraneo": (36.0, -10.0),
+    "Oceano Indico": (12.0, 55.0),
+    "Somalia": (5.1521, 46.1996),
+    "Mozambique": (-18.6657, 35.5296),
+    "Africa Occidental": (14.4974, -14.4524),
+    "Golfo de Guinea": (2.0, 4.0),
+}
+
+
+def render_international_missions_interactive_map(mission_summary: pd.DataFrame) -> None:
+    """Render an interactive map where each mission can be explored via hover/click."""
+    plot_data = mission_summary.copy()
+    plot_data["lat"] = plot_data["country_or_mission"].map(lambda name: MISSION_LOCATION_COORDS.get(name, (None, None))[0])
+    plot_data["lon"] = plot_data["country_or_mission"].map(lambda name: MISSION_LOCATION_COORDS.get(name, (None, None))[1])
+    plot_data = plot_data.dropna(subset=["lat", "lon"])
+    if plot_data.empty:
+        st.info("No hay coordenadas disponibles para representar las misiones en el mapa interactivo.")
+        return
+
+    framework_colors = {
+        "OTAN": "#0b3d91",
+        "Union Europea": "#1d4ed8",
+        "ONU": "#0ea5e9",
+        "Otros marcos": "#6b7280",
+    }
+    fig = px.scatter_map(
+        plot_data,
+        lat="lat",
+        lon="lon",
+        color="framework",
+        color_discrete_map=framework_colors,
+        hover_name="country_or_mission",
+        hover_data={
+            "mission": True,
+            "period": True,
+            "public_context": True,
+            "framework": True,
+            "lat": False,
+            "lon": False,
+        },
+        zoom=1.1,
+        height=520,
+    )
+    fig.update_traces(marker={"size": 16, "opacity": 0.9})
+    fig.update_layout(
+        map={"style": "open-street-map", "center": {"lat": 15, "lon": 10}},
+        margin={"l": 0, "r": 0, "t": 10, "b": 0},
+        legend_title_text="Marco",
+    )
+    st.plotly_chart(fig, width="stretch")
+    st.caption(
+        "Mapa interactivo: pasa el cursor (o toca) cada punto para ver la misión, el periodo y su marco "
+        "(OTAN, UE, ONU u otros). Las posiciones son de referencia geográfica por país o zona, no "
+        "coordenadas tácticas ni de despliegue exacto."
+    )
 
 
 def render_international_missions_map() -> None:
@@ -347,6 +594,8 @@ def render_international_missions_map() -> None:
         "international_missions_map_summary.csv",
         frozenset({"region", "country_or_mission", "mission", "period", "public_context", "framework", "source_url", "notes"}),
     )
+    if not mission_summary.empty:
+        render_international_missions_interactive_map(mission_summary)
     st.markdown("#### Misiones internacionales vigentes: resumen de 2026")
     st.warning(
         "Tabla formada solo por las entradas actuales aportadas y contrastadas con EMAD. EUTM RCA se ha "
@@ -625,10 +874,127 @@ def render_personnel_context(external_revision: tuple[tuple[str, int], ...]) -> 
             st.caption(f"**{record.approximate_value}**\n\n{record.indicator}")
 
 
+def _load_boundary_geojson(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    with path.open(encoding="utf-8") as file:
+        return json.load(file)
+
+
+def render_ceuta_morocco_area_map(title: str) -> go.Figure:
+    """Render Ceuta (green) and Morocco (red) as filled areas, without city point markers."""
+    ceuta_geojson = _load_boundary_geojson(CEUTA_BOUNDARY_PATH)
+    morocco_geojson = _load_boundary_geojson(MOROCCO_BOUNDARY_PATH)
+
+    figure = go.Figure()
+    if morocco_geojson is not None:
+        figure.add_trace(
+            go.Choroplethmap(
+                geojson=morocco_geojson,
+                locations=["Morocco"],
+                featureidkey="properties.name",
+                z=[1],
+                colorscale=[[0, "rgba(214, 39, 40, 0.45)"], [1, "rgba(214, 39, 40, 0.45)"]],
+                marker_line_color="rgba(178, 24, 24, 1)",
+                marker_line_width=2.5,
+                showscale=False,
+                name="Marruecos",
+                hovertemplate="Marruecos<extra></extra>",
+            )
+        )
+    if ceuta_geojson is not None:
+        figure.add_trace(
+            go.Choroplethmap(
+                geojson=ceuta_geojson,
+                locations=["Ceuta"],
+                featureidkey="properties.name",
+                z=[1],
+                colorscale=[[0, "rgba(44, 160, 44, 0.7)"], [1, "rgba(44, 160, 44, 0.7)"]],
+                marker_line_color="rgba(20, 110, 20, 1)",
+                marker_line_width=3,
+                showscale=False,
+                name="Ceuta",
+                hovertemplate="Ceuta<extra></extra>",
+            )
+        )
+        # A small marker keeps Ceuta visible even when the map is zoomed out far
+        # enough that its thin polygon shrinks to a sliver.
+        figure.add_trace(
+            go.Scattermap(
+                lat=[35.8894],
+                lon=[-5.3213],
+                mode="markers",
+                marker={"size": 10, "color": "rgba(20, 110, 20, 1)"},
+                hovertemplate="Ceuta<extra></extra>",
+                showlegend=False,
+            )
+        )
+    # Legend entries: Choroplethmap traces don't show a standard legend, so add
+    # marker traces off the visible map area purely to label the colors.
+    figure.add_trace(
+        go.Scattermap(
+            lat=[20.0],
+            lon=[-30.0],
+            mode="markers",
+            marker={"size": 10, "color": "rgba(214, 39, 40, 0.9)"},
+            name="Marruecos",
+            showlegend=True,
+        )
+    )
+    figure.add_trace(
+        go.Scattermap(
+            lat=[20.0],
+            lon=[-30.0],
+            mode="markers",
+            marker={"size": 10, "color": "rgba(44, 160, 44, 0.9)"},
+            name="Ceuta (España)",
+            showlegend=True,
+        )
+    )
+    figure.update_layout(
+        map={"style": "open-street-map", "zoom": 7.8, "center": {"lat": 35.7, "lon": -5.1}},
+        height=500,
+        title=title,
+        margin={"l": 0, "r": 0, "t": 45, "b": 0},
+        showlegend=True,
+        legend={"title": "Territorio", "bgcolor": "rgba(255, 255, 255, 0.85)"},
+    )
+    return figure
+
+
 def render_ceuta_melilla_map(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
     """Show a non-tactical geographic reference map for the border analysis."""
     st.divider()
-    st.subheader("Mapa de situación — Ceuta")
+    st.subheader("Emblemas de unidades")
+    st.markdown(
+        "**Unidades destacadas con presencia o proyección en la zona de Ceuta:**\n\n"
+        "- 🪂 **BRIPAC — Paracaidistas:** unidad de alta disponibilidad especializada en operaciones aerotransportadas y despliegue rápido.\n"
+        "- 🟢 **BRILEG — Legión:** unidad de infantería de alta disponibilidad, preparada para operaciones nacionales e internacionales.\n"
+        "- 🪖 **Brigada «Guzmán el Bueno» X — Mecanizada:** unidad con capacidades mecanizadas y acorazadas para operaciones terrestres de alta intensidad.\n"
+        "- ✈️ **Ala 11 — Capacidad aérea:** unidad equipada con Eurofighter, especializada en defensa y operaciones aéreas.\n"
+        "- 🧠 **CIFAS — Centro de Inteligencia de las Fuerzas Armadas:** obtiene y analiza información para apoyar la toma de decisiones militares.\n"
+        "- 🛡️ **Mando Conjunto del Ciberespacio (MCCE):** dirige y coordina las capacidades militares españolas de ciberdefensa y operaciones en el ciberespacio.\n"
+        "- ⚓ **Infantería de Marina:** cuerpo de la Armada especializado en operaciones anfibias y proyección desde el mar.\n"
+        "- 🪖 **Infantería:** arma principal del Ejército de Tierra, base de la maniobra terrestre."
+    )
+    unit_cards = [
+        ("BRIPAC", "Una unidad de alta disponibilidad para despliegue rápido."),
+        ("BRILEG", "Legión: infantería de alta disponibilidad."),
+        ("Guzmán el Bueno X", "Brigada mecanizada de proyección terrestre."),
+        ("Ala 11", "Ala de Eurofighter para defensa aérea."),
+        ("CIFAS", "Centro de inteligencia para apoyo a la toma de decisiones militares."),
+        ("MCCE", "Mando conjunto para ciberdefensa y operaciones en el ciberespacio."),
+        ("Infantería de Marina", "Armada: operaciones anfibias y proyección desde el mar."),
+        ("Infantería", "Ejército de Tierra: arma base de la maniobra terrestre."),
+    ]
+    unit_columns = st.columns(len(unit_cards))
+    for column, (name, description) in zip(unit_columns, unit_cards):
+        image_path = UNIT_IMAGE_PATHS.get(name)
+        with column:
+            if image_path and image_path.exists():
+                st.image(str(image_path), width=210)
+            st.caption(f"**{name}**")
+            st.write(description)
     st.caption(
         "Mapa de referencia geográfica. No muestra posiciones de fuerzas de seguridad, "
         "rutas individuales ni información táctica."
@@ -636,21 +1002,9 @@ def render_ceuta_melilla_map(data: dict[str, tuple[pd.DataFrame, str | None]]) -
 
     border, border_error = data["border"]
     if border.empty:
-        map_figure = px.scatter_map(
-            CEUTA_MELILLA_REFERENCE_POINTS,
-            lat="latitude",
-            lon="longitude",
-            hover_name="location",
-            hover_data={"description": True, "latitude": False, "longitude": False},
-            color="location",
-            zoom=4.6,
-            center={"lat": 35.6, "lon": -4.15},
-            map_style="open-street-map",
-            height=500,
-            title="Ceuta y Melilla: localización de referencia",
+        map_figure = render_ceuta_morocco_area_map(
+            title="Ceuta y Marruecos: referencia geográfica",
         )
-        map_figure.update_traces(marker={"size": 14})
-        map_figure.update_layout(margin={"l": 0, "r": 0, "t": 45, "b": 0}, showlegend=True)
         st.plotly_chart(map_figure, width="stretch")
         st.info(
             "Capa de datos operativos: pendiente. Se activará al incorporar "
@@ -689,49 +1043,81 @@ def render_ceuta_melilla_map(data: dict[str, tuple[pd.DataFrame, str | None]]) -
                     how="left",
                 )
             )
-            map_figure = px.scatter_map(
-                map_records,
-                lat="latitude",
-                lon="longitude",
-                size="arrivals",
-                color="territory",
-                hover_name="territory",
-                hover_data={
-                    "arrivals": ":,",
-                    "period": True,
-                    "entry_route": True,
-                    "latitude": False,
-                    "longitude": False,
-                    "location": False,
-                    "_period_order": False,
-                },
-                size_max=58,
-                zoom=4.6,
-                center={"lat": 35.6, "lon": -4.15},
-                map_style="open-street-map",
-                height=500,
+            map_figure = render_ceuta_morocco_area_map(
                 title="Llegadas irregulares por vía terrestre: acumulado seleccionado",
-                labels={
-                    "arrivals": "Llegadas registradas",
-                    "period": "Periodo acumulado",
-                    "entry_route": "Vía",
-                    "territory": "Ciudad",
-                },
             )
-            map_figure.update_layout(
-                margin={"l": 0, "r": 0, "t": 45, "b": 0},
-                legend_title_text="Ciudad",
-            )
+            label_records = map_records.dropna(subset=["latitude", "longitude"])
+            if not label_records.empty:
+                map_figure.add_trace(
+                    go.Scattermap(
+                        lat=label_records["latitude"],
+                        lon=label_records["longitude"],
+                        mode="text",
+                        text=[
+                            f"{territory}<br>{arrivals:,.0f}"
+                            for territory, arrivals in zip(
+                                label_records["territory"], label_records["arrivals"]
+                            )
+                        ],
+                        textfont={"size": 14, "color": "#1a1a1a"},
+                        hoverinfo="skip",
+                        showlegend=False,
+                    )
+                )
+            map_figure.update_layout(margin={"l": 0, "r": 0, "t": 45, "b": 0})
             st.plotly_chart(map_figure, width="stretch")
             selected_period_end = map_records[period_column].iloc[0]
             st.caption(
-                f"Tamaño de cada marcador = llegadas registradas. Corte del periodo mostrado: {selected_period_end}. "
+                f"Etiqueta = llegadas registradas por ciudad. Corte del periodo mostrado: {selected_period_end}. "
                 "No representa intentos de entrada, interceptaciones ni rutas individuales."
             )
             st.caption(
                 "La tabla siguiente incluye también la vía marítima, identificada en la columna "
                 "**Vía de llegada**; esta no se representa en el mapa."
             )
+            with st.expander(
+                "⚠️ Por qué la cifra del CSV (5.013) no coincide con la entrada masiva de julio de 2026",
+                expanded=False,
+            ):
+                st.markdown(
+                    "La estadística ordinaria de Interior y el episodio extraordinario de entrada "
+                    "masiva del **30–31 de julio de 2026** en Ceuta **no miden lo mismo** y no deben "
+                    "sumarse como si fueran conjuntos independientes: usan metodologías distintas."
+                )
+                comparison_table = pd.DataFrame(
+                    [
+                        {
+                            "Dato": "Estadística ordinaria Interior (1 ene.–15 ago. 2026)",
+                            "Cifra": "5.013",
+                            "Fuente": "Ministerio del Interior",
+                            "Qué representa": "Llegadas irregulares registradas según la metodología estadística habitual.",
+                        },
+                        {
+                            "Dato": "Entrada masiva 30–31 de julio de 2026",
+                            "Cifra": "> 70.000",
+                            "Fuente": "Gobierno de España / La Moncloa (comparecencia 25/08/2026)",
+                            "Qué representa": "Personas que entraron durante el episodio extraordinario; 90–95% regresó a Marruecos en 24–48h.",
+                        },
+                        {
+                            "Dato": "Estimación del tamaño de la avalancha",
+                            "Cifra": "~ 80.000",
+                            "Fuente": "Congreso de los Diputados (BOCG 31/08/2026, iniciativa de Vox) y presidente de Ceuta, Juan Jesús Vivas",
+                            "Qué representa": "Estimación pública; el propio documento del Congreso indica que la cifra exacta es desconocida.",
+                        },
+                        {
+                            "Dato": "Población de Ceuta",
+                            "Cifra": "~ 80.000",
+                            "Fuente": "INE",
+                            "Qué representa": "Residentes de la ciudad, para dimensionar el impacto relativo del episodio.",
+                        },
+                    ]
+                )
+                st.dataframe(comparison_table, width="stretch", hide_index=True)
+                st.caption(
+                    "El propio Gobierno no certifica una cifra exacta de 80.000: su formulación oficial es "
+                    "\"más de 70.000\", con estimaciones públicas de hasta ~80.000. Se recomienda citar ambos "
+                    "niveles (dato oficial confirmado vs. estimación) en lugar de una única cifra cerrada."
+                )
             border_table = ceuta_melilla[ceuta_melilla["territory"].eq("Ceuta")][
                 ["period", "territory", "entry_route", "arrivals", "source_document"]
             ].rename(
@@ -788,7 +1174,30 @@ def render_defence(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
         },
         title="Gráfica 1 — Evolución del gasto militar de España (EUR constantes aprox.)",
     )
-    st.plotly_chart(chart, width="stretch")
+    chart.update_traces(
+        mode="lines+markers",
+        line={"width": 3},
+        marker={"size": 8, "line": {"width": 1, "color": "white"}},
+        hovertemplate="<b>%{x}</b><br>Gasto militar: %{y:,.0f} EUR<extra></extra>",
+    )
+    chart.update_layout(
+        hovermode="x unified",
+        template="plotly_white",
+        legend={"orientation": "h", "y": 1.12},
+        margin={"l": 55, "r": 20, "t": 60, "b": 45},
+        height=430,
+        yaxis={"tickformat": ",.0f", "title": "EUR constantes aprox."},
+    )
+    chart.add_annotation(
+        x=spain["year"].iloc[-1],
+        y=spain["military_expenditure_constant_usd"].iloc[-1],
+        text=f"Último: {spain['military_expenditure_constant_usd'].iloc[-1]:,.0f} EUR",
+        showarrow=True,
+        arrowhead=2,
+        yshift=15,
+        font={"size": 11},
+    )
+    render_scrollable_plotly_chart(chart, min_width=1100)
 
     ratio_chart = px.line(
         spain,
@@ -797,6 +1206,28 @@ def render_defence(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
         markers=True,
         labels={"year": "Año", "military_expenditure_pct_gdp": "Gasto militar (% del PIB)"},
         title="Gráfica 2 — Esfuerzo de defensa de España (% del PIB)",
+    )
+    ratio_chart.update_traces(
+        mode="lines+markers",
+        line={"width": 3},
+        marker={"size": 8, "line": {"width": 1, "color": "white"}},
+        hovertemplate="<b>%{x}</b><br>% del PIB: %{y:.2f}%<extra></extra>",
+    )
+    ratio_chart.update_layout(
+        hovermode="x unified",
+        template="plotly_white",
+        margin={"l": 55, "r": 20, "t": 60, "b": 45},
+        height=430,
+        yaxis={"tickformat": ".1f", "title": "% del PIB"},
+    )
+    ratio_chart.add_annotation(
+        x=spain["year"].iloc[-1],
+        y=spain["military_expenditure_pct_gdp"].iloc[-1],
+        text=f"Último: {spain['military_expenditure_pct_gdp'].iloc[-1]:.2f}%",
+        showarrow=True,
+        arrowhead=2,
+        yshift=15,
+        font={"size": 11},
     )
     st.plotly_chart(ratio_chart, width="stretch")
     st.warning(
@@ -1061,7 +1492,9 @@ def render_morocco_defence(data: dict[str, tuple[pd.DataFrame, str | None]]) -> 
     st.caption(
         f"Último año disponible para Marruecos: {int(latest['year'])}. "
         "Los importes se muestran en EUR aproximados usando el tipo medio EUR/USD de 2024; "
-        "los CSV originales permanecen en USD."
+        "los CSV originales permanecen en USD. "
+        "El gasto agregado refleja capacidad económica y esfuerzo presupuestario, no la capacidad "
+        "operativa real en todas sus dimensiones."
     )
 
     expenditure_chart = px.line(
@@ -1075,6 +1508,28 @@ def render_morocco_defence(data: dict[str, tuple[pd.DataFrame, str | None]]) -> 
         },
         title="Evolución del gasto militar de Marruecos (EUR constantes aprox.)",
     )
+    expenditure_chart.update_traces(
+        mode="lines+markers",
+        line={"width": 3},
+        marker={"size": 8, "line": {"width": 1, "color": "white"}},
+        hovertemplate="<b>%{x}</b><br>Gasto militar: %{y:,.0f} EUR<extra></extra>",
+    )
+    expenditure_chart.update_layout(
+        hovermode="x unified",
+        template="plotly_white",
+        margin={"l": 55, "r": 20, "t": 60, "b": 45},
+        height=430,
+        yaxis={"tickformat": ",.0f", "title": "EUR constantes aprox."},
+    )
+    expenditure_chart.add_annotation(
+        x=morocco["year"].iloc[-1],
+        y=morocco["military_expenditure_constant_usd"].iloc[-1],
+        text=f"Último: {morocco['military_expenditure_constant_usd'].iloc[-1]:,.0f} EUR",
+        showarrow=True,
+        arrowhead=2,
+        yshift=15,
+        font={"size": 11},
+    )
     st.plotly_chart(expenditure_chart, width="stretch")
 
     effort_chart = px.line(
@@ -1085,17 +1540,111 @@ def render_morocco_defence(data: dict[str, tuple[pd.DataFrame, str | None]]) -> 
         labels={"year": "Año", "military_expenditure_pct_gdp": "Gasto militar (% del PIB)"},
         title="Esfuerzo de defensa de Marruecos (% del PIB)",
     )
+    effort_chart.update_traces(
+        mode="lines+markers",
+        line={"width": 3},
+        marker={"size": 8, "line": {"width": 1, "color": "white"}},
+        hovertemplate="<b>%{x}</b><br>% del PIB: %{y:.2f}%<extra></extra>",
+    )
+    effort_chart.update_layout(
+        hovermode="x unified",
+        template="plotly_white",
+        margin={"l": 55, "r": 20, "t": 60, "b": 45},
+        height=430,
+        yaxis={"tickformat": ".1f", "title": "% del PIB"},
+    )
+    effort_chart.add_annotation(
+        x=morocco["year"].iloc[-1],
+        y=morocco["military_expenditure_pct_gdp"].iloc[-1],
+        text=f"Último: {morocco['military_expenditure_pct_gdp'].iloc[-1]:.2f}%",
+        showarrow=True,
+        arrowhead=2,
+        yshift=15,
+        font={"size": 11},
+    )
     st.plotly_chart(effort_chart, width="stretch")
     st.warning(
         "La serie SIPRI mide gasto militar agregado; por sí sola no representa la capacidad "
         "militar completa ni debe equipararse directamente a presupuestos nacionales."
     )
 
+    render_morocco_geopolitical_context()
+
     external_revision = external_data_revision()
     render_morocco_public_defence_context(external_revision)
     render_morocco_navy_vessels(external_revision)
     render_morocco_equipment_catalog(external_revision)
     render_morocco_cyber_breakdown(data)
+
+
+def render_morocco_geopolitical_context() -> None:
+    """Contextualise Morocco as a regional actor: demographics, Ceuta pressure and the 'zona gris' framing."""
+    st.markdown("### 🇲🇦 Marruecos como actor regional: contexto breve")
+    st.markdown(
+        "Marruecos es una **monarquía constitucional de facto autoritaria**: el rey Mohammed VI "
+        "concentra un poder ejecutivo muy amplio (jefatura del Estado, del Ejército y de la religión), "
+        "muy por encima del papel del Parlamento y del Gobierno electo. Índices internacionales como "
+        "Freedom House lo clasifican como **«parcialmente libre»**, señalando restricciones relevantes "
+        "a la libertad de prensa, la disidencia política y las libertades civiles."
+    )
+    st.markdown(
+        "Es además una monarquía norteafricana con más de **38 millones de habitantes**, frontera "
+        "terrestre directa con España en Ceuta y Melilla, y un peso creciente como socio y competidor "
+        "regional. Aunque su gasto militar en términos absolutos es muy inferior al de España (ver "
+        "gráficas superiores), dedica una **proporción relevante de su PIB a defensa** y ha ampliado "
+        "en los últimos años su cooperación militar con Israel y Estados Unidos (ver más abajo)."
+    )
+    demographics, ceuta_col, morocco_col = st.columns(3)
+    demographics.metric("Población de Ceuta", "~83.500 hab.")
+    ceuta_col.metric("Población de Marruecos", "> 38 millones")
+    morocco_col.metric("Diferencia demográfica", "≈ 460×")
+    st.caption(
+        "La disparidad demográfica entre Ceuta y Marruecos ayuda a dimensionar por qué un movimiento "
+        "migratorio puntual, aunque minoritario para Marruecos, puede resultar abrumador para la ciudad "
+        "autónoma española."
+    )
+
+    st.markdown("#### Presión migratoria de julio de 2026: ¿crisis o coerción?")
+    st.markdown(
+        "Durante los días **30 y 31 de julio de 2026**, el Gobierno de España reconoció la entrada de "
+        "**más de 70.000 personas** en Ceuta, principalmente por las zonas fronterizas del Tarajal y "
+        "Benzú (incluyendo accesos por los espigones y a nado); algunas estimaciones públicas hablan de "
+        "hasta ~80.000, sin confirmación oficial exacta (ver desglose de fuentes en el mapa de Ceuta). "
+        "En apenas 48 horas entró un número de personas equivalente a **más del 80% de la población "
+        "residente** de la ciudad."
+    )
+    st.markdown(
+        "A diferencia de la crisis migratoria y humanitaria de 2015 en la UE (~800.000 personas huyendo "
+        "de la guerra de Siria), en este episodio no se ha documentado un conflicto armado o una crisis "
+        "humanitaria comparable en Marruecos que explique por sí sola una avalancha de esta magnitud en "
+        "solo dos días. Esto ha llevado a analizarlo dentro del marco conceptual de la **«zona gris»**: "
+    )
+    st.info(
+        "**Zona gris**: acciones que, individualmente, no alcanzan el umbral de un acto de guerra "
+        "convencional, pero que acumuladas pueden producir efectos estratégicos. Una presión migratoria "
+        "extraordinaria podría encuadrarse aquí **si se demostrara** que un Estado utiliza deliberadamente "
+        "los flujos migratorios como instrumento de **coerción** (\"te presiono para que hagas lo que "
+        "quiero, sin necesidad de entrar en guerra contigo\") contra otro Estado."
+    )
+    st.warning(
+        "Esta hipótesis no está probada de forma independiente en este proyecto: se presenta como marco "
+        "analítico plausible, no como un hecho confirmado. Marruecos no ha reconocido oficialmente "
+        "instrumentalizar los flujos migratorios."
+    )
+
+    st.markdown("#### La disputa de fondo: soberanía de Ceuta y Melilla")
+    st.markdown(
+        "En agosto de 2026, el ministro de Justicia de Marruecos, **Abdellatif Ouahbi**, afirmó que "
+        "Marruecos mantiene un «derecho histórico y geográfico» sobre Ceuta y Melilla y que la cuestión "
+        "debería resolverse mediante diálogo, llegando a sugerir que ambas ciudades deberían pasar a "
+        "soberanía marroquí. **España ha rechazado expresamente cualquier negociación sobre su soberanía** "
+        "y sostiene que Ceuta y Melilla forman parte de su territorio nacional y de la Unión Europea."
+    )
+    st.caption(
+        "Este contexto de reivindicación territorial explícita, sumado al episodio migratorio de julio "
+        "de 2026 y al giro español de 2022 sobre el Sáhara Occidental (ver sección de alianza más abajo), "
+        "conforma el marco geopolítico bilateral entre España y Marruecos analizado en este proyecto."
+    )
 
 
 def render_morocco_leadership_context(external_revision: tuple[tuple[str, int], ...]) -> None:
@@ -1668,7 +2217,7 @@ def render_public_defence_context(
 
 def render_spain_morocco_head_to_head(military: pd.DataFrame) -> None:
     """Show a dedicated Spain vs Morocco comparison: the project's main geopolitical pairing."""
-    st.subheader("España vs Marruecos: cara a cara")
+    st.subheader("España vs Marruecos")
     st.caption(
         "Comparación directa de los dos países centrales del proyecto. Usa la misma serie SIPRI "
         "que el resto del panel; no mezcla metodologías OTAN ni presupuestos nacionales."
@@ -2373,7 +2922,7 @@ def render_sources(data: dict[str, tuple[pd.DataFrame, str | None]]) -> None:
             "conclusion": (
                 "Separa expresamente hechos confirmados, información oficial, información periodística, "
                 "atribuciones e hipótesis. Alimenta el desglose de ciberseguridad en ambas pestañas de "
-                "defensa, la pestaña de la Alianza, España-OTAN y el caso documentado en Escenarios de riesgo."
+                "defensa, la pestaña de la Alianza y España-OTAN."
             ),
         },
     ]
@@ -2395,6 +2944,57 @@ def render_presentation_script() -> None:
     st.markdown(load_presentation_script())
 
 
+def render_bottom_nav(tab_labels: list[str]) -> int:
+    """Render a compact navigation bar (wrapped in rows) for quick movement between sections."""
+    if "selected_tab" not in st.session_state:
+        st.session_state.selected_tab = 0
+    st.session_state.selected_tab = min(
+        max(int(st.session_state.selected_tab), 0),
+        len(tab_labels) - 1,
+    )
+
+    st.markdown(
+        """
+        <style>
+        div.stButton > button {
+            border-radius: 10px;
+            font-size: 0.8rem;
+            padding: 0.45rem 0.5rem;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: normal;
+            hyphens: auto;
+            line-height: 1.2;
+            height: auto;
+            min-height: 2.6rem;
+            overflow: visible;
+            width: 100%;
+        }
+        div.stButton > button p {
+            font-size: 0.8rem;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: normal;
+            hyphens: auto;
+            line-height: 1.2;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    per_row = 6
+    for row_start in range(0, len(tab_labels), per_row):
+        row_labels = tab_labels[row_start : row_start + per_row]
+        nav_columns = st.columns(len(row_labels))
+        for offset, label in enumerate(row_labels):
+            index = row_start + offset
+            with nav_columns[offset]:
+                if st.button(label, key=f"nav_tab_{index}", use_container_width=True):
+                    st.session_state.selected_tab = index
+    return int(st.session_state.selected_tab)
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Spain Security & Defense Analytics",
@@ -2406,43 +3006,26 @@ def main() -> None:
     st.caption("Proyecto académico basado en fuentes trazables. Última actualización de datos: la indicada en cada fuente.")
 
     data = load_project_data(processed_data_revision())
-    tabs = st.tabs(
-        [
-            "Overview",
-            "Defensa de España",
-            "Defensa de Marruecos",
-            "Comparación internacional",
-            "Alianza — Acuerdos de Abraham",
-            "España-OTAN",
-            "Comparación alianzas internacionales",
-            "Escenarios de riesgo",
-            "Preparación civil",
-            "Fuentes",
-            "Guion 15 min",
-        ]
-    )
-    with tabs[0]:
-        render_overview(data)
-    with tabs[1]:
-        render_defence(data)
-    with tabs[2]:
-        render_morocco_defence(data)
-    with tabs[3]:
-        render_comparison(data)
-    with tabs[4]:
-        render_abraham_accords_alliance(data)
-    with tabs[5]:
-        render_spain_nato(data)
-    with tabs[6]:
-        render_international_alliance_comparison(data)
-    with tabs[7]:
-        render_risk_matrix(data)
-    with tabs[8]:
-        render_civil_preparedness()
-    with tabs[9]:
-        render_sources(data)
-    with tabs[10]:
-        render_presentation_script()
+    tab_labels = [
+        "Overview",
+        "Defensa de España",
+        "Defensa de Marruecos",
+        "Comparación internacional",
+        "Alianza — Acuerdos de Abraham",
+        "Comparación alianzas internacionales",
+        "Fuentes",
+    ]
+    selected_tab = render_bottom_nav(tab_labels)
+    renderers = [
+        lambda: render_overview(data),
+        lambda: render_defence(data),
+        lambda: render_morocco_defence(data),
+        lambda: render_comparison(data),
+        lambda: render_abraham_accords_alliance(data),
+        lambda: render_international_alliance_comparison(data),
+        lambda: render_sources(data),
+    ]
+    renderers[selected_tab]()
 
 
 if __name__ == "__main__":

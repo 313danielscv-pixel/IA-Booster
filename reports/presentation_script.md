@@ -8,6 +8,14 @@ A fecha de 19 de agosto de 2026, abordo este trabajo como estudiante de análisi
 
 Cuando hablo de políticas, me refiero a decisiones y documentos públicos: presupuestos de defensa, planes de ciberseguridad, cooperación internacional, medidas de gestión fronteriza y recomendaciones de Protección Civil. El proyecto analiza sus datos, objetivos y límites publicados; no pretende valorar partidos políticos ni atribuir intenciones que no estén demostradas.
 
+La hipótesis de partida establece que, cuanto mayor sea la capacidad económica de un Estado y, por tanto, los recursos que pueda destinar a la defensa, mayor será potencialmente su poder militar. Sin embargo, esta relación no debe entenderse como una equivalencia directa entre dinero y capacidad bélica.
+
+La historia militar demuestra que disponer de mayores recursos puede proporcionar una ventaja significativa, pero el resultado final depende de cómo estos sean transformados en capacidades reales. La inversión debe convertirse en personal preparado, sistemas de armas, tecnología, inteligencia, logística, mantenimiento, industria de defensa y capacidad de proyectar y sostener la fuerza en el tiempo.
+
+Esta idea puede relacionarse con el concepto de **«fricción de la guerra»** desarrollado por Carl von Clausewitz en *De la guerra*. Clausewitz advertía que *«todo en la guerra es muy sencillo, pero lo más sencillo es difícil»*, señalando que existe una distancia entre la guerra planificada y la guerra real. Los recursos disponibles pueden reducir determinadas limitaciones, pero no eliminan factores como la incertidumbre, los errores, la logística, el terreno, el factor humano o la capacidad del adversario.
+
+Por tanto, este proyecto plantea una cuestión más amplia: **¿hasta qué punto el presupuesto de defensa de un Estado se traduce realmente en poder militar?** El objetivo no será simplemente determinar qué países gastan más, sino analizar si ese gasto se transforma efectivamente en capacidades militares. De esta forma, el presupuesto será considerado como uno de los principales indicadores de poder potencial, pero no como una medida absoluta del poder bélico.
+
 El proyecto no pretende defender una posición política.
 
 Los datos se guardan principalmente en archivos **CSV**, siglas de *Comma-Separated Values* o valores separados por comas. Un CSV es una tabla: cada fila es una observación —por ejemplo, un país en un año— y cada columna es una variable, como gasto, PIB o población. Conservar los CSV originales y los procesados por separado permite reproducir los gráficos.
